@@ -1,0 +1,18 @@
+[project]
+name = "assignment_service"
+version = "0.1.0"
+description = ""
+requires-python = ">=3.13"
+dependencies = []
+
+[tool.ruff]
+line-length = 88
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
