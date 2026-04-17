@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from uuid import UUID
 from datetime import datetime, timezone
 
-from checking_service.domain.enums import Language, ExecutionStatus, EvaluationStatus
+from checking_service.domain.enums import ExecutionStatus, EvaluationStatus
 from checking_service.domain.entities import ExecutionCase
 from checking_service.domain.errors import InvariantViolationError
 
@@ -11,7 +11,6 @@ from checking_service.domain.errors import InvariantViolationError
 class Evaluation:
     id: UUID
     submission_id: UUID
-    language: Language
     total_tests_count: int
     status: EvaluationStatus = EvaluationStatus.PENDING
     passed_tests: int = 0

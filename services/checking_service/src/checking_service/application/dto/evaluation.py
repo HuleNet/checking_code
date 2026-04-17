@@ -7,7 +7,6 @@ from datetime import datetime
 class EvaluationDTO:
     id: UUID
     submission_id: UUID
-    language: str
     total_tests_count: int
     status: str
     passed_tests: int
@@ -19,5 +18,4 @@ class EvaluationDTO:
 @dataclass
 class CreateEvaluationDTO:
     submission_id: UUID
-    language: str
     total_tests_count: int

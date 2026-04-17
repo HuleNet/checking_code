@@ -1,15 +1,20 @@
+from uuid import UUID
+
 from checking_service.domain.enums import ExecutionStatus
 from checking_service.domain.entities import ExecutionCase
-from checking_service.application.dto.execution_case import ExecutionCaseDTO
+from checking_service.application.dto.execution_case import (
+    ExecutionCaseDTO,
+    CreateExecutionCaseDTO,
+)
 from checking_service.application.errors import ValidationError
 
 
 class ExecutionCaseMapper:
     @staticmethod
-    def to_domain(dto: ExecutionCaseDTO) -> ExecutionCase:
+    def to_domain(dto: CreateExecutionCaseDTO, id: UUID) -> ExecutionCase:
         try:
             return ExecutionCase(
-                id=dto.id,
+                id=id,
                 evaluation_id=dto.evaluation_id,
                 input_case_id=dto.input_case_id,
                 status=ExecutionStatus(dto.status),

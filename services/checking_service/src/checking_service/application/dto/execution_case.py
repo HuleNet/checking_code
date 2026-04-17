@@ -20,4 +20,4 @@ class CreateExecutionCaseDTO:
     status: str
     stdout: str
     stderr: str
-    executioN_time_ms: int
+    execution_time_ms: int

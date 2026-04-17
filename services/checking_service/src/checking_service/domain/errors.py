@@ -14,5 +14,9 @@ class BaseError(Exception):
         self.details = details or {}
 
 
-class InvariantViolationError(BaseError):
+class DomainError(BaseError):
+    code = "base_domain_error"
+
+
+class InvariantViolationError(DomainError):
     code = "invariant_violation"

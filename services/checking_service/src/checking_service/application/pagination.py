@@ -1,13 +1,17 @@
 from dataclasses import dataclass
-from uuid import UUID
+from typing import Any, Generic, TypeVar
+
+
+T = TypeVar("T")
 
 
 @dataclass(frozen=True)
-class Cursor:
-    id: UUID
-
-
-@dataclass(frozen=True)
-class Pagination:
+class CursorPagination:
     limit: int
-    cursor: Cursor | None = None
+    cursor: dict[str, Any] | None = None
+
+
+@dataclass(frozen=True)
+class Page(Generic[T]):
+    items: list[T]
+    next_cursor: dict[str, Any] | None
