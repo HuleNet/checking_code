@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from checking_service.application.dto.evaluation import EvaluationDTO
-from checking_service.application.mappers import EvaluationMapper
+from checking_service.application.dto.mappers import EvaluationMapper
 from checking_service.application.ports import UnitOfWork
 from checking_service.application.errors import NotFoundError
 

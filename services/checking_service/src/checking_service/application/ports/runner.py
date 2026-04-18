@@ -2,7 +2,7 @@ from typing import Protocol
 
 from checking_service.domain.enums import Language
 from checking_service.domain.entities import ExecutionCase
-from checking_service.application.dto.runner_result import RunnerResult
+from checking_service.application.models.runner_result import RunnerResult
 
 
 class Runner(Protocol):

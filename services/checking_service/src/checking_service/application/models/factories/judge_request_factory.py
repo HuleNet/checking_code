@@ -1,11 +1,11 @@
 from checking_service.domain.entities import ExecutionCase
-from checking_service.application.dto.runner_result import RunnerResult
-from checking_service.application.dto.judge import JudgeRequest
+from checking_service.application.models.runner_result import RunnerResult
+from checking_service.application.models.judge_request import JudgeRequest
 
 
-class JudgeRequestMapper:
+class JudgeRequestFactory:
     @staticmethod
-    def map_request(
+    def create_request(
         execution_case: ExecutionCase, runner_result: RunnerResult
     ) -> JudgeRequest:
         return JudgeRequest(

@@ -2,7 +2,7 @@ from uuid import UUID
 from typing import Protocol
 
 from checking_service.domain.entities import Evaluation
-from checking_service.application.dto.pagination import CursorPagination, Page
+from checking_service.application.models.pagination import CursorPagination, Page
 
 
 class EvaluationRepository(Protocol):

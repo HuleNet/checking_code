@@ -1,7 +1,7 @@
 from uuid import uuid4
 
 from checking_service.application.dto.input_case import CreateInputCaseDTO, InputCaseDTO
-from checking_service.application.mappers import InputCaseMapper
+from checking_service.application.dto.mappers import InputCaseMapper
 from checking_service.application.ports import UnitOfWork
 
 

@@ -2,7 +2,7 @@ from typing import Protocol
 from uuid import UUID
 
 from checking_service.domain.entities import ExecutionCase
-from checking_service.application.dto.pagination import CursorPagination, Page
+from checking_service.application.models.pagination import CursorPagination, Page
 
 
 class ExecutionCaseRepository(Protocol):

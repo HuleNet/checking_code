@@ -8,3 +8,10 @@ class SubmissionDTO:
     assignment_id: UUID
     language: str
     code: str
+
+
+@dataclass(frozen=True)
+class PreviewSubmissionDTO:
+    assignment_id: UUID
+    language: str
+    code: str

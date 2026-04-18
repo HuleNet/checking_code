@@ -1,6 +1,6 @@
 from typing import Protocol
 
-from checking_service.application.dto.outbox import OutboxMessage
+from checking_service.application.models.outbox import OutboxMessage
 
 
 class OutboxRepository(Protocol):

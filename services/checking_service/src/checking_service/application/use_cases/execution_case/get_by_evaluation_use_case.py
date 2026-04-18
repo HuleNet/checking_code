@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from checking_service.application.dto.execution_case import ExecutionCaseDTO
-from checking_service.application.mappers import ExecutionCaseMapper
+from checking_service.application.dto.mappers import ExecutionCaseMapper
 from checking_service.application.ports import UnitOfWork
 
 
