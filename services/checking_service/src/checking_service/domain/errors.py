@@ -20,3 +20,7 @@ class DomainError(BaseError):
 
 class InvariantViolationError(DomainError):
     code = "invariant_violation"
+
+
+class BusinessRuleViolationError(DomainError):
+    code = "business_rule_violation"

@@ -6,17 +6,17 @@ from uuid import UUID
 class ExecutionCaseDTO:
     id: UUID
     evaluation_id: UUID
-    input_case_id: UUID
-    status: str
-    stdout: str
-    stderr: str
-    execution_time_ms: int
+    input_data: str
+    expected_output: str
+    check_type: str
+    status: str | None
+    stdout: str | None
+    stderr: str | None
+    execution_time_ms: int | None
 
 
 @dataclass(frozen=True)
-class CreateExecutionCaseDTO:
-    evaluation_id: UUID
-    input_case_id: UUID
+class UpdateExecutionCaseDTO:
     status: str
     stdout: str
     stderr: str

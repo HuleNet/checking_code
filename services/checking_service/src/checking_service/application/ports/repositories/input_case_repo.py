@@ -2,18 +2,15 @@ from uuid import UUID
 from typing import Protocol
 
 from checking_service.domain.entities import InputCase
-from checking_service.application.pagination import CursorPagination, Page
+from checking_service.application.dto.pagination import CursorPagination, Page
 
 
 class InputCaseRepository(Protocol):
     async def add(self, input_case: InputCase) -> InputCase: ...
-
     async def get(self, id: UUID) -> InputCase | None: ...
-
-    async def get_by_assignment(
+    async def get_by_assignment(self, assignment_id: UUID) -> list[InputCase]: ...
+    async def get_page(
         self, assignment_id: UUID, pagination: CursorPagination
     ) -> Page[InputCase]: ...
-
     async def update(self, input_case: InputCase) -> InputCase: ...
-
     async def delete(self, id: UUID) -> InputCase | None: ...

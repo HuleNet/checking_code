@@ -22,9 +22,7 @@ class EvaluationMapper:
             id=domain.id,
             submission_id=domain.submission_id,
             total_tests_count=domain.total_tests_count,
+            passed_tests_count=domain.passed_tests_count,
             status=domain.status.value,
-            passed_tests=domain.passed_tests,
-            failed_tests=domain.failed_tests,
-            error_tests=domain.error_tests,
             created_at=domain.created_at,
         )

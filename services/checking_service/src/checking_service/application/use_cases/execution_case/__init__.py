@@ -2,15 +2,15 @@ from checking_service.application.use_cases.execution_case.get_use_case import (
     GetExecutionCaseUseCase,
 )
 from checking_service.application.use_cases.execution_case.get_by_evaluation_use_case import (
-    GetExecutionCaseByEvaluationUseCase,
+    GetExecutionCasesByEvaluationUseCase,
 )
-from checking_service.application.use_cases.evaluation.delete_use_case import (
-    DeleteEvaluationUseCase,
+from checking_service.application.use_cases.execution_case.get_page_use_case import (
+    GetExecutionCasePageUseCase,
 )
 
 
 __all__ = (
     "GetExecutionCaseUseCase",
-    "GetExecutionCaseByEvaluationUseCase",
-    "DeleteEvaluationUseCase",
+    "GetExecutionCasesByEvaluationUseCase",
+    "GetExecutionCasePageUseCase",
 )
