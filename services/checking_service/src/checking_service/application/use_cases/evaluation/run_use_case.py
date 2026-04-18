@@ -1,4 +1,3 @@
-from checking_service.domain.enums import EvaluationStatus
 from checking_service.application.dto.outbox import RunEvaluationRequested
 from checking_service.application.mappers import JudgeRequestMapper
 from checking_service.application.ports import UnitOfWork, Runner, Judge
@@ -6,24 +5,22 @@ from checking_service.application.errors import NotFoundError
 
 
 class RunEvaluationUseCase:
-    def __init__(self, uow: UnitOfWork, runner: Runner, judge: Judge) -> None:
+    def __init__(
+        self, uow: UnitOfWork, runner: Runner, judge: Judge, stuck_time_sec: int
+    ) -> None:
         self.uow = uow
         self.runner = runner
         self.judge = judge
+        self.stuck_time_sec = stuck_time_sec
 
     async def execute(self, event: RunEvaluationRequested) -> None:
         async with self.uow as uow:
-            evaluation_domain = await uow.evaluation_repo.get(id=event.evaluation_id)
+            evaluation_domain = await uow.evaluation_repo.claim_for_run(
+                id=event.evaluation_id,
+                stuck_timeout_sec=self.stuck_time_sec,
+            )
 
             if evaluation_domain is None:
-                raise NotFoundError(
-                    message="Evaluation not found",
-                    details={
-                        "id": event.evaluation_id,
-                    },
-                )
-
-            if evaluation_domain.status != EvaluationStatus.PENDING:
                 return
 
             execution_cases = await uow.execution_case_repo.get_by_evaluation(
@@ -37,8 +34,7 @@ class RunEvaluationUseCase:
                         "evaluation_id": evaluation_domain.id,
                     },
                 )
-            evaluation_domain.start()
-            await uow.evaluation_repo.update(evaluation=evaluation_domain)
+
             await uow.commit()
 
         try:

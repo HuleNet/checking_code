@@ -11,6 +11,7 @@ class EvaluationDTO:
     passed_tests_count: int
     status: str
     created_at: datetime
+    started_at: datetime | None
 
 
 @dataclass

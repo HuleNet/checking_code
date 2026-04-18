@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from uuid import UUID
 
 from checking_service.domain.enums import ExecutionStatus, CheckType
-from checking_service.domain.errors import InvariantViolationError, BusinessRuleViolationError
+from checking_service.domain.errors import InvariantViolationError
 
 
 @dataclass
@@ -28,13 +28,8 @@ class ExecutionCase:
         self, status: ExecutionStatus, stdout: str, stderr: str, execution_time_ms: int
     ) -> None:
         if self.status is not None:
-            raise BusinessRuleViolationError(
-                message="Result already applied",
-                details={
-                    "status": self.status,
-                }
-            )
-        
+            return
+
         self.status = status
         self.stdout = stdout
         self.stderr = stderr

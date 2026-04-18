@@ -25,4 +25,5 @@ class EvaluationMapper:
             passed_tests_count=domain.passed_tests_count,
             status=domain.status.value,
             created_at=domain.created_at,
+            started_at=domain.started_at,
         )

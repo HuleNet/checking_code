@@ -18,20 +18,10 @@ class Evaluation:
     passed_tests_count: int = 0
     status: EvaluationStatus = EvaluationStatus.PENDING
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    started_at: datetime | None = None
 
     def __post_init__(self) -> None:
         self._check_invariants()
-
-    def start(self) -> None:
-        if self.status != EvaluationStatus.PENDING:
-            raise BusinessRuleViolationError(
-                message="Evaluation can be started only from PENDING",
-                details={
-                    "status": self.status.value,
-                },
-            )
-
-        self.status = EvaluationStatus.RUNNING
 
     def fail(self) -> None:
         self.status = EvaluationStatus.ERROR
