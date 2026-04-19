@@ -1,0 +1,39 @@
+services:
+  db:
+    image: postgres:16
+    container_name: checking_postgres
+    restart: unless-stopped
+
+    env_file:
+      - .env
+    
+    ports: 
+      - "5432:5432"
+    
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    
+  app:
+    build: .
+    container_name: checking_app
+    depends_on:
+      - db
+    
+    env_file:
+      - .env
+    
+    ports:
+      - "8000:8000"
+    
+    volumes:
+      - .:/app
+      - /app/.venv
+    
+    command: >
+      uv run uvicorn checking_service.main:app
+      --host 0.0.0.0
+      --port 8000
+      --reload
+  
+volumes:
+  postgres_data:

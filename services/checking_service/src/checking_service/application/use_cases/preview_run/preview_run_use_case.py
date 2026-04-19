@@ -8,18 +8,22 @@ from checking_service.application.dto.mappers import (
 )
 from checking_service.application.models.factories import ExecutionCaseFactory
 from checking_service.application.ports.repositories import InputCaseRepository
-from checking_service.application.services import ExecutionService
-from checking_service.application.errors import NotFoundError
+from checking_service.application.services import EvaluationService
+from checking_service.application.errors import (
+    NotFoundError,
+    ServiceExecutionError,
+    InternalServiceError,
+)
 
 
 class PreviewRunUseCase:
     def __init__(
         self,
         input_case_repo: InputCaseRepository,
-        execution_service: ExecutionService,
+        evaluation_service: EvaluationService,
     ) -> None:
         self.input_case_repo = input_case_repo
-        self.execution_service = execution_service
+        self.evaluation_service = evaluation_service
 
     async def execute(self, submission: PreviewSubmissionDTO) -> PreviewEvaluationDTO:
         submission_domain = SubmissionMapper.to_domain_from_preview(dto=submission)
@@ -31,7 +35,7 @@ class PreviewRunUseCase:
             raise NotFoundError(
                 message="InputCases not found",
                 details={
-                    "dry_run": True,
+                    "preview_run": True,
                     "assignment_id": submission_domain.assignment_id,
                 },
             )
@@ -47,20 +51,30 @@ class PreviewRunUseCase:
         ]
 
         try:
-            execution_cases = await self.execution_service.execute(
+            execution_cases = await self.evaluation_service.execute(
                 code=submission_domain.code,
                 language=submission_domain.language,
                 execution_cases=execution_cases,
             )
 
-        # !ЗАМЕНИТЬ НА INFRA-ERROR!
-        except Exception:
+        except ServiceExecutionError as exc:
+            exc.details["preview_run"] = True
             raise
 
-        status, summary_execution_case = self.execution_service.dry_summarize(
+        except Exception as exc:
+            raise InternalServiceError(
+                message="Unexpected execution failure",
+                details={
+                    "preview_run": True,
+                },
+            ) from exc
+
+        status, summary_execution_case = self.evaluation_service.summarize(
             execution_cases=execution_cases
         )
-        passed_tests_count = self.execution_service.dry_count_passed(execution_cases)
+        passed_tests_count = self.evaluation_service.count_passed_tests(
+            execution_cases=execution_cases
+        )
         return PreviewEvaluationDTO(
             total_tests_count=len(execution_cases),
             passed_tests_count=passed_tests_count,

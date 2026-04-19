@@ -1,4 +1,8 @@
-from checking_service.application.services.execution_service import ExecutionService
+from checking_service.application.services.judge_service import JudgeService
+from checking_service.application.services.evaluation_service import EvaluationService
 
 
-__all__ = ("ExecutionService",)
+__all__ = (
+    "EvaluationService",
+    "JudgeService",
+)

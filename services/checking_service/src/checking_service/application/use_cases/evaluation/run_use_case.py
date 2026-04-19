@@ -1,15 +1,24 @@
+from uuid import UUID
+
 from checking_service.application.models.outbox import RunEvaluationRequested
 from checking_service.application.ports import UnitOfWork
-from checking_service.application.services import ExecutionService
-from checking_service.application.errors import NotFoundError
+from checking_service.application.services import EvaluationService
+from checking_service.application.errors import (
+    NotFoundError,
+    ServiceExecutionError,
+    InternalServiceError,
+)
 
 
 class RunEvaluationUseCase:
     def __init__(
-        self, uow: UnitOfWork, execution_service: ExecutionService, stuck_time_sec: int
+        self,
+        uow: UnitOfWork,
+        evaluation_service: EvaluationService,
+        stuck_time_sec: int,
     ) -> None:
         self.uow = uow
-        self.execution_service = execution_service
+        self.evaluation_service = evaluation_service
         self.stuck_time_sec = stuck_time_sec
 
     async def execute(self, event: RunEvaluationRequested) -> None:
@@ -37,25 +46,24 @@ class RunEvaluationUseCase:
             await uow.commit()
 
         try:
-            execution_cases = await self.execution_service.execute(
+            execution_cases = await self.evaluation_service.execute(
                 code=event.code,
                 language=event.language,
                 execution_cases=execution_cases,
             )
 
-        # !ЗАМЕНИТЬ НА INFRA-ERROR!
-        except Exception:
-            async with self.uow as uow:
-                evaluation_domain = await uow.evaluation_repo.get(
-                    id=event.evaluation_id
-                )
-
-                if evaluation_domain:
-                    evaluation_domain.fail()
-                    await uow.evaluation_repo.update(evaluation=evaluation_domain)
-                    await uow.commit()
-
+        except ServiceExecutionError:
+            await self._mark_failed(evaluation_id=event.evaluation_id)
             raise
+
+        except Exception as exc:
+            await self._mark_failed(event.evaluation_id)
+            raise InternalServiceError(
+                message="Unexpected execution failure",
+                details={
+                    "evaluation_id": event.evaluation_id,
+                },
+            ) from exc
 
         async with self.uow as uow:
             evaluation_domain = await uow.evaluation_repo.get(id=event.evaluation_id)
@@ -72,3 +80,12 @@ class RunEvaluationUseCase:
             evaluation_domain.recalculate(execution_cases=execution_cases)
             await uow.evaluation_repo.update(evaluation=evaluation_domain)
             await uow.commit()
+
+    async def _mark_failed(self, evaluation_id: UUID) -> None:
+        async with self.uow as uow:
+            evaluation_domain = await uow.evaluation_repo.get(id=evaluation_id)
+
+            if evaluation_domain:
+                evaluation_domain.fail()
+                await uow.evaluation_repo.update(evaluation=evaluation_domain)
+                await uow.commit()

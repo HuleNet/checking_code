@@ -2,12 +2,23 @@ from checking_service.domain.enums import ExecutionStatus, Language
 from checking_service.domain.entities import ExecutionCase
 from checking_service.application.models.enums import PreviewEvaluationStatus
 from checking_service.application.models.factories import JudgeRequestFactory
-from checking_service.application.ports import Runner, Judge
-from checking_service.application.errors import ApplicationError, NotFoundError
+from checking_service.application.ports import Runner
+from checking_service.application.services import JudgeService
+from checking_service.application.errors import (
+    RunnerError,
+    RunnerContractViolationError,
+    JudgeError,
+    JudgeCompareError,
+)
 
 
-class ExecutionService:
-    def __init__(self, runner: Runner, judge: Judge, max_stdio_length: int) -> None:
+class EvaluationService:
+    def __init__(
+        self,
+        runner: Runner,
+        judge: JudgeService,
+        max_stdio_length: int,
+    ) -> None:
         self.runner = runner
         self.judge = judge
         self.max_stdio_length = max_stdio_length
@@ -21,17 +32,27 @@ class ExecutionService:
         if not execution_cases:
             return []
 
-        runner_results = await self.runner.run(
-            code=code,
-            language=language,
-            execution_cases=execution_cases,
-        )
+        try:
+            runner_results = await self.runner.run(
+                code=code,
+                language=language,
+                execution_cases=execution_cases,
+            )
+
+        # ЗАМЕНИТЬ НА INFRA_RUNNER-ERROR
+        except Exception as exc:
+            raise RunnerError(
+                message="Runner execution failed",
+                details={},
+            ) from exc
 
         if len(runner_results) != len(execution_cases):
-            # !ДОБАВИТЬ ПОДХОДЯЩИЙ ERROR!
-            raise ApplicationError(
-                message="",
-                details={},
+            raise RunnerContractViolationError(
+                message="Runner returned incorrect number of results",
+                details={
+                    "expected": len(execution_cases),
+                    "actual": len(runner_results),
+                },
             )
 
         execution_case_map = {
@@ -41,28 +62,36 @@ class ExecutionService:
 
         for runner_result in runner_results:
             if runner_result.execution_case_id in seen_ids:
-                # !ДОБАВИТЬ ПОДХОДЯЩИЙ ERROR!
-                raise ApplicationError(
-                    message="",
-                    details={},
+                raise RunnerContractViolationError(
+                    message="Duplicate ExecutionCase ID in runner results",
+                    details={
+                        "execution_case_id": runner_result.execution_case_id,
+                    },
                 )
 
             seen_ids.add(runner_result.execution_case_id)
             execution_case = execution_case_map.get(runner_result.execution_case_id)
 
             if execution_case is None:
-                raise NotFoundError(
+                raise RunnerContractViolationError(
                     message="ExecutionCase in runner results not found",
                     details={
-                        "dry_run": True,
                         "execution_case_id": runner_result.execution_case_id,
                     },
                 )
 
-            request = JudgeRequestFactory.create_request(
-                execution_case=execution_case, runner_result=runner_result
-            )
-            status = self.judge.evaluate(request=request)
+            try:
+                request = JudgeRequestFactory.create_request(
+                    execution_case=execution_case, runner_result=runner_result
+                )
+                status = self.judge.evaluate(request=request)
+
+            except JudgeCompareError as exc:
+                raise JudgeError(
+                    message="Judge evaluation failed",
+                    details=exc.details,
+                ) from exc
+
             execution_case.apply_result(
                 status=status,
                 stdout=self._truncate(runner_result.stdout),
@@ -73,7 +102,7 @@ class ExecutionService:
         return execution_cases
 
     @staticmethod
-    def dry_count_passed(execution_cases: list[ExecutionCase]) -> int:
+    def count_passed_tests(execution_cases: list[ExecutionCase]) -> int:
         return sum(
             1
             for execution_case in execution_cases
@@ -81,7 +110,7 @@ class ExecutionService:
         )
 
     @staticmethod
-    def dry_summarize(
+    def summarize(
         execution_cases: list[ExecutionCase],
     ) -> tuple[PreviewEvaluationStatus, ExecutionCase | None]:
         errors = []
