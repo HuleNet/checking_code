@@ -1,8 +1,9 @@
 from uuid import UUID
 from typing import TYPE_CHECKING
 
-from sqlalchemy import UUID as DB_UUID, String, Integer, Enum, ForeignKey
+from sqlalchemy import String, Integer, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 from checking_service.domain.enums import ExecutionStatus, CheckType
 from checking_service.infrastructure.db.models.base_model import (
@@ -17,9 +18,9 @@ if TYPE_CHECKING:
 class ExecutionCaseORM(BaseModel):
     __tablename__ = "execution_cases"
 
-    id: Mapped[UUID] = mapped_column(DB_UUID(as_uuid=True), primary_key=True)
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
     evaluation_id: Mapped[UUID] = mapped_column(
-        DB_UUID(as_uuid=True),
+        PG_UUID(as_uuid=True),
         ForeignKey("evaluations.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -34,6 +35,6 @@ class ExecutionCaseORM(BaseModel):
     )
     stdout: Mapped[str | None] = mapped_column(String(MAX_STR_LENGTH), nullable=True)
     stderr: Mapped[str | None] = mapped_column(String(MAX_STR_LENGTH), nullable=True)
-    execution_time_ms: Mapped[int | None] = mapped_column(Integer(), nullable=True)
+    execution_time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
 
     evaluation: Mapped["EvaluationORM"] = relationship(back_populates="execution_cases")

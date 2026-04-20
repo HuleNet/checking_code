@@ -1,7 +1,8 @@
 from uuid import UUID
 
-from sqlalchemy import UUID as DB_UUID, Enum, String
+from sqlalchemy import Enum, String
 from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 from checking_service.domain.enums import CheckType
 from checking_service.infrastructure.db.models.base_model import (
@@ -13,9 +14,9 @@ from checking_service.infrastructure.db.models.base_model import (
 class InputCaseORM(BaseModel):
     __tablename__ = "input_cases"
 
-    id: Mapped[UUID] = mapped_column(DB_UUID(as_uuid=True), primary_key=True)
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
     assignment_id: Mapped[UUID] = mapped_column(
-        DB_UUID(as_uuid=True), nullable=False, index=True
+        PG_UUID(as_uuid=True), nullable=False, index=True
     )
     input_data: Mapped[str] = mapped_column(String(MAX_STR_LENGTH), nullable=False)
     expected_output: Mapped[str] = mapped_column(String(MAX_STR_LENGTH), nullable=False)

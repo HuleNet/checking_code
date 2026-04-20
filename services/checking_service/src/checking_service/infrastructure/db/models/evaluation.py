@@ -2,8 +2,9 @@ from uuid import UUID
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import UUID as DB_UUID, DATETIME, Integer, Enum
+from sqlalchemy import DATETIME, Integer, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 from checking_service.domain.enums import EvaluationStatus
 from checking_service.infrastructure.db.models.base_model import BaseModel
@@ -15,12 +16,12 @@ if TYPE_CHECKING:
 class EvaluationORM(BaseModel):
     __tablename__ = "evaluations"
 
-    id: Mapped[UUID] = mapped_column(DB_UUID(as_uuid=True), primary_key=True)
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
     submission_id: Mapped[UUID] = mapped_column(
-        DB_UUID(as_uuid=True), nullable=False, index=True
+        PG_UUID(as_uuid=True), nullable=False, index=True
     )
-    total_tests_count: Mapped[int] = mapped_column(Integer(), nullable=False)
-    passed_tests_count: Mapped[int] = mapped_column(Integer(), nullable=False)
+    total_tests_count: Mapped[int] = mapped_column(Integer, nullable=False)
+    passed_tests_count: Mapped[int] = mapped_column(Integer, nullable=False)
     status: Mapped[EvaluationStatus] = mapped_column(
         Enum(EvaluationStatus, native_enum=False), nullable=False
     )

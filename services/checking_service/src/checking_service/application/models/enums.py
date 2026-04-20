@@ -10,4 +10,5 @@ class PreviewEvaluationStatus(BaseEnum):
 class OutboxStatus(BaseEnum):
     PENDING = "PENDING"
     PUBLISHED = "PUBLISHED"
+    PROCESSING = "PROCESSING"
     FAILED = "FAILED"
