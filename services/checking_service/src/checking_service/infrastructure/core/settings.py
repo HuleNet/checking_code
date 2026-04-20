@@ -10,11 +10,20 @@ class Settings(BaseSettings):
     db_port: int
     db_name: str
     db_user: str
-    db_pass: SecretStr
+    db_password: SecretStr
     db_echo: bool
+
+    broker_host: str
+    broker_port: int
+    broker_user: str
+    broker_password: SecretStr
 
     max_stdio_length: int
     stuck_time_sec: int
+    time_limit_sec: int
+    memory_limit_mb: int
+    run_cpu_limit: float
+    epsilon: float
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -25,8 +34,15 @@ class Settings(BaseSettings):
     @property
     def db_url(self) -> str:
         return (
-            f"postgresql+asyncpg://{self.db_user}:{self.db_pass.get_secret_value}"
+            f"postgresql+asyncpg://{self.db_user}:{self.db_password.get_secret_value()}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
+        )
+
+    @property
+    def broker_url(self) -> str:
+        return (
+            f"amqp://{self.broker_user}:{self.broker_password.get_secret_value()}"
+            f"@{self.broker_host}:{self.broker_port}//"
         )
 
 

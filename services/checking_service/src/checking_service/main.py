@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from checking_service.infrastructure.config import get_settings_cached
+from checking_service.infrastructure.core import get_settings_cached
 
 settings = get_settings_cached()
 

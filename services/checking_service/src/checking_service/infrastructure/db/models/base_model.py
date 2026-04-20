@@ -1,7 +1,7 @@
 from sqlalchemy import inspect
 from sqlalchemy.orm import DeclarativeBase
 
-from checking_service.infrastructure.config import get_settings_cached
+from checking_service.infrastructure.core import get_settings_cached
 
 
 MAX_STR_LENGTH = get_settings_cached().max_stdio_length

@@ -4,10 +4,19 @@ WORKDIR /app
 
 ENV PYTHONPATH=/app/src
 
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    netcat-openbsd \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY pyproject.toml uv.lock ./
 
 RUN pip install uv && uv sync --frozen --no-dev
 
 COPY . .
 
-CMD ["uv", "run", "uvicorn", "checking_service.main:app", "--host", "0.0.0.0", "--port", "8000"]
+COPY docker/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+ENTRYPOINT ["/entrypoint.sh"]

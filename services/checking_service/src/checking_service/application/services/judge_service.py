@@ -20,6 +20,9 @@ class JudgeService:
         if request.memory_exceeded:
             return ExecutionStatus.MEMORY_LIMIT
 
+        if request.exit_code != 0:
+            return ExecutionStatus.RUNTIME_ERROR
+
         comparator = self._comparators.get(request.check_type)
         if comparator is None:
             return ExecutionStatus.SYSTEM_ERROR

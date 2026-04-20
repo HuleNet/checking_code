@@ -2,7 +2,7 @@ from os import environ
 
 from pytest import fixture
 
-from checking_service.infrastructure.config import get_settings_cached
+from checking_service.infrastructure.core import get_settings_cached
 
 
 environ["APP_ENV"] = "test"
