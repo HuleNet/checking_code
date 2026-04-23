@@ -1,7 +1,14 @@
-from os import path
-from tempfile import TemporaryDirectory
-from asyncio import gather, create_subprocess_exec, subprocess, wait_for, TimeoutError
-from time import monotonic
+from io import BytesIO
+from dataclasses import dataclass
+from json import dumps, loads
+from tarfile import TarInfo, open as tarfile_open
+from asyncio import to_thread
+from time import time, sleep
+from typing import Any
+from pathlib import Path
+
+from docker import from_env
+from docker.models.containers import Container
 
 from checking_service.domain.enums import Language
 from checking_service.domain.entities import ExecutionCase
@@ -9,125 +16,231 @@ from checking_service.application.models.runner_result import RunnerResult
 from checking_service.application.ports import Runner
 
 
+@dataclass
+class LanguageConfig:
+    image: str
+    filename: str
+    compile: list[str] | None
+    run: list[str]
+
+
+LANG_CONFIG: dict[Language, LanguageConfig] = {
+    Language.PYTHON: LanguageConfig(
+        image="python:3.11-alpine",
+        filename="main.py",
+        compile=None,
+        run=["python3", "main.py"],
+    ),
+    Language.CSHARP: LanguageConfig(
+        image="mcr.microsoft.com/dotnet/sdk:7.0",
+        filename="Program.cs",
+        compile=["dotnet", "build", "-o", "out"],
+        run=["dotnet", "out/Program.dll"],
+    ),
+}
+
+
 class DockerRunner(Runner):
     def __init__(
-        self, timeout_sec: int, memory_limit_mb: int, cpu_limit: float
+        self,
+        timeout_sec: int,
+        memory_limit_mb: int,
+        cpu_limit: float,
     ) -> None:
+        self.client = from_env()
         self.timeout_sec = timeout_sec
         self.memory_limit_mb = memory_limit_mb
         self.cpu_limit = cpu_limit
-        self.language_map = {
-            Language.PYTHON: ("python:3.13-slim", "main.py", "python main.py"),
-        }
+        self.executor_path = Path(__file__).parent / "executor.py"
 
     async def run(
-        self, code: str, language: Language, execution_cases: list[ExecutionCase]
+        self,
+        code: str,
+        language: Language,
+        execution_cases: list[ExecutionCase],
     ) -> list[RunnerResult]:
-        tasks = [
-            self._run_one(code=code, language=language, execution_case=execution_case)
-            for execution_case in execution_cases
-        ]
-        return await gather(*tasks)
+        return await to_thread(self._run_sync, code, language, execution_cases)
 
-    async def _run_one(
-        self, code: str, language: Language, execution_case: ExecutionCase
-    ) -> RunnerResult:
-        image, filename, command = self._get_language_specs(language=language)
+    def _run_sync(
+        self,
+        code: str,
+        language: Language,
+        execution_cases: list[ExecutionCase],
+    ) -> list[RunnerResult]:
+        config = LANG_CONFIG[language]
+        container: Container | None = None
+        start_time = time()
 
-        with TemporaryDirectory() as tmpdir:
-            file_path = path.join(tmpdir, filename)
+        try:
+            container = self.client.containers.create(
+                image=config.image,
+                command=["sh", "-c", "python3 executor.py"],
+                working_dir="/tmp",
+                mem_limit=f"{self.memory_limit_mb}m",
+                cpu_period=100_000,
+                cpu_quota=int(self.cpu_limit * 100_000),
+                network_disabled=True,
+                pids_limit=64,
+                security_opt=["no-new-privileges"],
+                read_only=False,
+            )
+            self._copy_files(container, code, execution_cases, config)
+            container.start()
+            timeout = False
+            
+            while True:
+                container.reload()
+                status = container.status
 
-            with open(file_path, "w") as f:
-                f.write(code)
+                if status in ("exited", "dead"):
+                    break
 
-            container_name = f"runner-{execution_case.id}"
-            docker_cmd = [
-                "docker",
-                "run",
-                "--rm",
-                "--name",
-                container_name,
-                "--network",
-                "none",
-                "--read-only",
-                "--pids-limit",
-                "64",
-                "--memory",
-                f"{self.memory_limit_mb}m",
-                "--cpus",
-                str(self.cpu_limit),
-                "-v",
-                f"{tmpdir}:/app:ro",
-                "-w",
-                "/app",
-                image,
-                "sh",
-                "-c",
-                command,
-            ]
-            start = monotonic()
+                if time() - start_time > self.timeout_sec:
+                    container.kill()
+                    timeout = True
+                    break
+
+                sleep(0.05)
+
+            container.reload()
+            state = container.attrs.get("State", {})
+            exit_code = state.get("ExitCode", -1)
+            oom_killed = state.get("OOMKilled", False)
+            stdout = container.logs(stdout=True, stderr=False).decode(errors="ignore")
+            stderr = container.logs(stdout=False, stderr=True).decode(errors="ignore")
+            duration_ms = int((time() - start_time) * 1000)
+
+            if timeout:
+                return self._fail_all(execution_cases, duration_ms, "TIMEOUT")
+
+            if oom_killed:
+                return [
+                    RunnerResult(
+                        execution_case_id=case.id,
+                        stdout="",
+                        stderr="MEMORY_LIMIT_EXCEEDED",
+                        execution_time_ms=duration_ms,
+                        exit_code=-1,
+                        timeout=False,
+                        memory_exceeded=True,
+                    )
+                    for case in execution_cases
+                ]
+
+            if exit_code != 0:
+                return self._fail_all(
+                    execution_cases,
+                    duration_ms,
+                    stderr or f"EXIT_CODE_{exit_code}",
+                )
 
             try:
-                proc = await create_subprocess_exec(
-                    *docker_cmd,
-                    stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
+                data = loads(stdout)
+                
+            except Exception:
+                return self._fail_all(
+                    execution_cases,
+                    duration_ms,
+                    f"INVALID_JSON\nstdout:\n{stdout}\nstderr:\n{stderr}",
                 )
 
-                try:
-                    stdout, stderr = await wait_for(
-                        proc.communicate(input=execution_case.input_data.encode()),
-                        timeout=self.timeout_sec,
-                    )
-                    timeout = False
-
-                except TimeoutError:
-                    timeout = True
-                    await self._kill_container(name=container_name)
-                    stdout, stderr = b"", b"Time limit exceeded"
-
-                end = monotonic()
-                exit_code = proc.returncode if proc.returncode is not None else 1
-                memory_limit_exceeded = exit_code == 137 and not timeout
-
-                return RunnerResult(
-                    execution_case_id=execution_case.id,
-                    stdout=stdout.decode(errors="replace"),
-                    stderr=stderr.decode(errors="replace"),
-                    execution_time_ms=int((end - start) * 1000),
-                    exit_code=proc.returncode if proc.returncode is not None else 1,
-                    timeout=timeout,
-                    memory_exceeded=memory_limit_exceeded,
+            if isinstance(data, dict) and data.get("compile_error"):
+                return self._compile_fail_all(
+                    execution_cases,
+                    data.get("stderr", ""),
                 )
 
-            except Exception as exc:
-                return RunnerResult(
-                    execution_case_id=execution_case.id,
-                    stdout="",
-                    stderr=str(exc),
-                    execution_time_ms=0,
-                    exit_code=1,
-                    timeout=False,
+            result_map: dict[str, dict[str, Any]] = {
+                r["id"]: r for r in data
+            }
+
+            return [
+                RunnerResult(
+                    execution_case_id=case.id,
+                    stdout=result_map[str(case.id)]["stdout"],
+                    stderr=result_map[str(case.id)]["stderr"],
+                    execution_time_ms=result_map[str(case.id)]["execution_time_ms"],
+                    exit_code=result_map[str(case.id)]["exit_code"],
+                    timeout=result_map[str(case.id)]["timeout"],
                     memory_exceeded=False,
                 )
+                for case in execution_cases
+            ]
 
-    def _get_language_specs(self, language: Language) -> tuple[str, str, str]:
-        if language not in self.language_map:
-            raise ValueError(f"Unsupported language:{language}")
+        except Exception as e:
+            duration_ms = int((time() - start_time) * 1000)
+            return self._fail_all(execution_cases, duration_ms, f"RUNNER_ERROR: {str(e)}")
 
-        return self.language_map[language]
+        finally:
+            if container:
+                try:
+                    container.remove(force=True)
+                    
+                except Exception:
+                    pass
 
-    async def _kill_container(self, name: str) -> None:
-        try:
-            proc = await create_subprocess_exec(
-                "docker",
-                "kill",
-                name,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
+    def _copy_files(
+        self,
+        container: Container,
+        code: str,
+        execution_cases: list[ExecutionCase],
+        config: LanguageConfig,
+    ) -> None:
+        tar_stream = BytesIO()
+        payload = {
+            "code": code,
+            "timeout": self.timeout_sec,
+            "config": {
+                "filename": config.filename,
+                "compile": config.compile,
+                "run": config.run,
+            },
+            "tests": [
+                {"id": str(case.id), "input": case.input_data}
+                for case in execution_cases
+            ],
+        }
+
+        with tarfile_open(fileobj=tar_stream, mode="w") as tar:
+            with open(self.executor_path, "rb") as f:
+                data = f.read()
+
+            ti = TarInfo(name="executor.py")
+            ti.size = len(data)
+            ti.mode = 0o755
+            tar.addfile(ti, BytesIO(data))
+            payload_bytes = dumps(payload).encode()
+            ti = TarInfo(name="input.json")
+            ti.size = len(payload_bytes)
+            tar.addfile(ti, BytesIO(payload_bytes))
+
+        tar_stream.seek(0)
+        container.put_archive("/tmp", tar_stream.read())
+
+    def _fail_all(self, execution_cases, duration_ms, error):
+        return [
+            RunnerResult(
+                execution_case_id=case.id,
+                stdout="",
+                stderr=error,
+                execution_time_ms=duration_ms,
+                exit_code=-1,
+                timeout=(error == "TIMEOUT"),
+                memory_exceeded=False,
             )
-            await proc.communicate()
+            for case in execution_cases
+        ]
 
-        except Exception:
-            pass
+    def _compile_fail_all(self, execution_cases, stderr):
+        return [
+            RunnerResult(
+                execution_case_id=case.id,
+                stdout="",
+                stderr=stderr,
+                execution_time_ms=0,
+                exit_code=-1,
+                timeout=False,
+                memory_exceeded=False,
+            )
+            for case in execution_cases
+        ]

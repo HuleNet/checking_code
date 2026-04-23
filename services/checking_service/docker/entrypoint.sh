@@ -1,23 +1,18 @@
 #!/bin/sh
+set -e
 
-echo "Waiting for PostgreSQL..."
+for i in $(seq 1 30)
+do
+  if pg_isready \
+      -h "$DB_HOST" \
+      -p "$DB_PORT" \
+      -U "$DB_USER"
+  then
+      exec "$@"
+  fi
 
-while ! nc -z $DB_HOST $DB_PORT; do
-  sleep 1
+  sleep 2
 done
 
-echo "PostgreSQL is ready"
-
-echo "Waiting for RabbitMQ..."
-
-while ! nc -z $BROKER_HOST $BROKER_PORT; do
-  sleep 1
-done
-
-echo "RabbitMQ is ready"
-
-echo "Running migrations..."
-uv run alembic upgrade head
-
-echo "Starting app..."
-exec "$@"
+echo "Database unavailable"
+exit 1

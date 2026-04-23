@@ -7,7 +7,7 @@ from checking_service.application.dto.mappers import (
     ExecutionCaseMapper,
 )
 from checking_service.application.models.factories import ExecutionCaseFactory
-from checking_service.application.ports.repositories import InputCaseRepository
+from checking_service.application.ports import UnitOfWork
 from checking_service.application.services import EvaluationService
 from checking_service.application.errors import (
     NotFoundError,
@@ -19,17 +19,19 @@ from checking_service.application.errors import (
 class PreviewRunUseCase:
     def __init__(
         self,
-        input_case_repo: InputCaseRepository,
+        uow: UnitOfWork,
         evaluation_service: EvaluationService,
     ) -> None:
-        self.input_case_repo = input_case_repo
+        self.uow = uow
         self.evaluation_service = evaluation_service
 
     async def execute(self, submission: PreviewSubmissionDTO) -> PreviewEvaluationDTO:
         submission_domain = SubmissionMapper.to_domain_from_preview(dto=submission)
-        input_cases = await self.input_case_repo.get_by_assignment(
-            assignment_id=submission_domain.assignment_id
-        )
+
+        async with self.uow as uow:
+            input_cases = await uow.input_case_repo.get_by_assignment(
+                assignment_id=submission_domain.assignment_id
+            )
 
         if not input_cases:
             raise NotFoundError(

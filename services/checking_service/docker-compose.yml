@@ -1,84 +1,110 @@
 services:
+
   db:
-    image: postgres:16
-    container_name: checking_postgres
-    restart: unless-stopped
+    image: postgres:17
+
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_DB: checking
+      POSTGRES_USER: checking
+      POSTGRES_PASSWORD: checking
+
     ports:
       - "5432:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
+
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER}"]
+      test: ["CMD-SHELL","pg_isready -U checking"]
       interval: 5s
-      timeout: 5s
-      retries: 5
+      retries: 20
+
 
   rabbitmq:
-    image: rabbitmq:3-management
-    container_name: checking_rabbitmq
-    restart: unless-stopped
-    environment:
-      RABBITMQ_DEFAULT_USER: ${BROKER_USER}
-      RABBITMQ_DEFAULT_PASS: ${BROKER_PASSWORD}
+    image: rabbitmq:4-management
+
     ports:
       - "5672:5672"
       - "15672:15672"
-    healthcheck:
-      test: ["CMD", "rabbitmq-diagnostics", "ping"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
 
-  app:
+
+
+  migrator:
     build: .
-    container_name: checking_app
+
+    env_file:
+      - .env
+
+    command:
+      - alembic
+      - upgrade
+      - head
+
+    volumes:
+      - ./alembic:/app/alembic
+
     depends_on:
       db:
         condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+
+
+  api:
+    build: .
+
     env_file:
       - .env
+    
+    environment:
+      DOCKER_HOST: unix:///var/run/docker.sock
+
     ports:
       - "8000:8000"
+
+    command:
+      - uvicorn
+      - checking_service.main:app
+      - --host
+      - 0.0.0.0
+      - --port
+      - "8000"
+      - --reload
+
     volumes:
-      - .:/app
-    command: >
-      uv run uvicorn checking_service.main:app
-      --host 0.0.0.0
-      --port 8000
-      --reload
+      - ./src:/app/src
+      - ./alembic:/app/alembic
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+
+
 
   worker:
     build: .
-    container_name: checking_worker
-    depends_on:
-      db:
-        condition: service_healthy
-      rabbitmq:
-        condition: service_healthy
+
     env_file:
       - .env
-    volumes:
-      - .:/app
-    command: >
-      uv run celery -A checking_service.infrastructure.core.celery_app worker
-      --loglevel=info
 
-  flower:
-    image: mher/flower
-    container_name: checking_flower
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-    ports:
-      - "5555:5555"
     environment:
-      CELERY_BROKER_URL: amqp://${BROKER_USER}:${BROKER_PASSWORD}@rabbitmq:5672//
+      DOCKER_HOST: unix:///var/run/docker.sock
+
+    command:
+      - celery
+      - -A
+      - checking_service.infrastructure.core.celery_app
+      - worker
+      - --loglevel=info
+
+    volumes:
+      - ./src:/app/src
+      - ./alembic:/app/alembic
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    depends_on:
+      migrator:
+        condition: service_completed_successfully
+
 
 volumes:
   postgres_data:

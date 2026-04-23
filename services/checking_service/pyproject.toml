@@ -14,6 +14,7 @@ dependencies = [
     "pydantic-settings>=2.13.1",
     "pytest>=9.0.3",
     "ruff>=0.15.10",
+    "types-docker>=7.1.0.20260409",
     "uvicorn[standard]>=0.44.0",
 ]
 

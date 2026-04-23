@@ -1,6 +1,4 @@
-from typing import AsyncGenerator
-
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
+from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 
 from checking_service.infrastructure.core import get_settings_cached
 
@@ -16,8 +14,3 @@ SessionLocal = async_sessionmaker(
     autoflush=False,
     autocommit=False,
 )
-
-
-async def get_db() -> AsyncGenerator[AsyncSession, None]:
-    async with SessionLocal() as db:
-        yield db

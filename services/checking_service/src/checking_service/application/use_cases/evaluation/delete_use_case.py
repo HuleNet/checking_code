@@ -14,12 +14,14 @@ class DeleteEvaluationUseCase:
         async with self.uow as uow:
             domain_result = await uow.evaluation_repo.delete(id=id)
 
-        if domain_result is None:
-            raise NotFoundError(
-                message="Evaluation not found",
-                details={
-                    "id": id,
-                },
-            )
+            if domain_result is None:
+                raise NotFoundError(
+                    message="Evaluation not found",
+                    details={
+                        "id": id,
+                    },
+                )
+
+            await uow.commit()
 
         return EvaluationMapper.to_dto(domain=domain_result)

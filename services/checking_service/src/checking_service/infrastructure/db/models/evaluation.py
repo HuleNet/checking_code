@@ -2,7 +2,7 @@ from uuid import UUID
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DATETIME, Integer, Enum
+from sqlalchemy import DateTime, Integer, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
@@ -26,10 +26,10 @@ class EvaluationORM(BaseModel):
         Enum(EvaluationStatus, native_enum=False), nullable=False
     )
     created_at: Mapped[datetime] = mapped_column(
-        DATETIME(timezone=True), nullable=False
+        DateTime(timezone=True), nullable=False
     )
     started_at: Mapped[datetime | None] = mapped_column(
-        DATETIME(timezone=True), nullable=True
+        DateTime(timezone=True), nullable=True
     )
 
     execution_cases: Mapped[list["ExecutionCaseORM"]] = relationship(

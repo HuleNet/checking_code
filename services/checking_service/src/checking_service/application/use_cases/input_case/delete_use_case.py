@@ -14,12 +14,14 @@ class DeleteInputCaseUseCase:
         async with self.uow as uow:
             domain_result = await uow.input_case_repo.delete(id=id)
 
-        if domain_result is None:
-            raise NotFoundError(
-                message="InputCase not found",
-                details={
-                    "id": id,
-                },
-            )
+            if domain_result is None:
+                raise NotFoundError(
+                    message="InputCase not found",
+                    details={
+                        "id": id,
+                    },
+                )
+
+            await uow.commit()
 
         return InputCaseMapper.to_dto(domain=domain_result)

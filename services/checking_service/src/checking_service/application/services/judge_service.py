@@ -30,23 +30,22 @@ class JudgeService:
         return comparator(expected=request.expected, actual=request.stdout)
 
     def _compare_exact(self, expected: str, actual: str) -> ExecutionStatus:
-        if expected != actual:
+        if expected.rstrip("\n") != actual.rstrip("\n"):
             return ExecutionStatus.WRONG_ANSWER
-
         return ExecutionStatus.PASSED
 
     def _compare_ignore_whitespace(self, expected: str, actual: str) -> ExecutionStatus:
-        expected_normalized = expected.strip().split()
-        actual_normalized = actual.strip().split()
+        expected_tokens = expected.split()
+        actual_tokens = actual.split()
 
-        if expected_normalized != actual_normalized:
+        if expected_tokens != actual_tokens:
             return ExecutionStatus.WRONG_ANSWER
 
         return ExecutionStatus.PASSED
 
     def _compare_line_by_line(self, expected: str, actual: str) -> ExecutionStatus:
-        expected_lines = expected.strip().splitlines()
-        actual_lines = actual.strip().splitlines()
+        expected_lines = expected.rstrip("\n").splitlines()
+        actual_lines = actual.rstrip("\n").splitlines()
 
         if len(expected_lines) != len(actual_lines):
             return ExecutionStatus.WRONG_ANSWER
@@ -59,9 +58,8 @@ class JudgeService:
 
     def _compare_float(self, expected: str, actual: str) -> ExecutionStatus:
         try:
-            expected_mapped = map(float, expected.strip().split())  # type: ignore
-            actual_mapped = map(float, actual.strip().split())  # type: ignore
-
+            expected_values = list(map(float, expected.split()))
+            actual_values = list(map(float, actual.split()))
         except ValueError:
             raise JudgeCompareError(
                 message="Can't map to float",
@@ -72,7 +70,10 @@ class JudgeService:
                 },
             )
 
-        for e, a in zip(expected_mapped, actual_mapped):
+        if len(expected_values) != len(actual_values):
+            return ExecutionStatus.WRONG_ANSWER
+
+        for e, a in zip(expected_values, actual_values):
             if abs(e - a) > self.epsilon:
                 return ExecutionStatus.WRONG_ANSWER
 
