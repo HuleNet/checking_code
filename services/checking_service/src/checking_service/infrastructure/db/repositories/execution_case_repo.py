@@ -133,28 +133,20 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
             .where(self.model.id.in_(ids))
             .values(
                 status=case(
-                    {
-                        execution_case.id: execution_case.status
-                        for execution_case in execution_cases
-                    }
+                    {execution_case.id: execution_case.status for execution_case in execution_cases},
+                    value=self.model.id,
                 ),
                 stdout=case(
-                    {
-                        execution_case.id: execution_case.stdout
-                        for execution_case in execution_cases
-                    }
+                    {execution_case.id: execution_case.stdout for execution_case in execution_cases},
+                    value=self.model.id,
                 ),
                 stderr=case(
-                    {
-                        execution_case.id: execution_case.stderr
-                        for execution_case in execution_cases
-                    }
+                    {execution_case.id: execution_case.stderr for execution_case in execution_cases},
+                    value=self.model.id,
                 ),
                 execution_time_ms=case(
-                    {
-                        execution_case.id: execution_case.execution_time_ms
-                        for execution_case in execution_cases
-                    }
+                    {execution_case.id: execution_case.execution_time_ms for execution_case in execution_cases},
+                    value=self.model.id,
                 ),
             )
         )

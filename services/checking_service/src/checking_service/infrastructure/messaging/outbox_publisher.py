@@ -1,8 +1,9 @@
-from asyncio import sleep
+from asyncio import sleep, run
 
 from checking_service.application.models.outbox import OutboxMessage
 from checking_service.application.ports import UnitOfWork
 from checking_service.infrastructure.messaging import CeleryDispatcher
+from checking_service.infrastructure.bootstrap import container
 
 
 class OutboxPublisher:
@@ -32,8 +33,24 @@ class OutboxPublisher:
 
             async with self.uow as uow:
                 await uow.outbox_repo.mark_published(id=message.id)
+                await uow.commit()
 
         except Exception:
             async with self.uow as uow:
                 await uow.outbox_repo.mark_failed(id=message.id)
                 await uow.commit()
+
+
+async def main() -> None:
+    uow = container.uow
+    dispatcher = CeleryDispatcher()
+    publisher = OutboxPublisher(
+        uow=uow,
+        dispatcher=dispatcher,
+        batch_size=10,
+    )
+    await publisher.run_forever()
+    
+    
+if __name__ =="__main__":
+    run(main())    

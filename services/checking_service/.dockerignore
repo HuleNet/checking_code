@@ -12,17 +12,13 @@ __pycache__
 .mypy_cache
 .ruff_cache
 
+.env.test
+
+tests/
+
+postgres_data
+
+.idea
 .vscode
 
 *.log
-
-.env
-.env.test
-.env.example
-
-tests
-
-node_modules
-
-Dockerfile
-docker-compose.yml

@@ -9,6 +9,9 @@ EVALUATION_QUEUE = "run_evaluation"
 celery_app = Celery(
     "checking_service",
     broker=get_settings_cached().broker_url,
+    include=[
+        "checking_service.infrastructure.messaging.tasks",
+    ],
 )
 celery_app.conf.update(
     task_serializer="json",
