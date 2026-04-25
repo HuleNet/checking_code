@@ -1,11 +1,15 @@
 from checking_service.application.models.outbox import OutboxMessage
+from checking_service.infrastructure.errors import TransientError
 from checking_service.infrastructure.core import celery_app
 
 
 class CeleryDispatcher:
-    def dispatch(self, message: OutboxMessage) -> None:
-        if message.event_type == "RUN_EVALUATION_REQUESTED":
-            celery_app.send_task("run_evaluation", kwargs=message.payload)
+    async def dispatch(self, message: OutboxMessage) -> None:
+        try:
+            celery_app.send_task(
+                name=message.event_type,
+                kwargs=message.payload,
+            )
 
-        else:
-            raise ValueError(f"Unknown event type: {message.event_type}")
+        except Exception as exc:
+            raise TransientError("Failed to dispatch message") from exc

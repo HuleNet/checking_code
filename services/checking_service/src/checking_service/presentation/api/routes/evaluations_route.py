@@ -1,8 +1,9 @@
 from uuid import UUID
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 
+from checking_service.application.models.pagination import CursorPagination
 from checking_service.application.use_cases.evaluation import (
     StartEvaluationUseCase,
     GetEvaluationUseCase,
@@ -13,6 +14,7 @@ from checking_service.application.use_cases.evaluation import (
 from checking_service.presentation.schemas import (
     EvaluationResponse,
     StartEvaluationRequest,
+    PageResponse,
 )
 from checking_service.presentation.dependencies.evaluation_use_cases import (
     get_use_case_start_evaluation,
@@ -62,6 +64,33 @@ async def get_evaluations_by_submission(
 ) -> list[EvaluationResponse]:
     results = await use_case.execute(submission_id=submission_id)
     return [EvaluationResponse.model_validate(result) for result in results]
+
+
+@evaluation_router.get(
+    "/submission/{submission_id}/page",
+    response_model=PageResponse[EvaluationResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def get_evaluation_page(
+    submission_id: UUID,
+    use_case: Annotated[
+        GetEvaluationPageUseCase, Depends(get_use_case_get_evaluation_page)
+    ],
+    limit: int = Query(default=20, ge=1, le=100),
+    cursor: UUID | None = Query(default=None),
+) -> PageResponse[EvaluationResponse]:
+    pagination = CursorPagination(
+        limit=limit,
+        cursor={"id": cursor} if cursor else None,
+    )
+    results = await use_case.execute(
+        submission_id=submission_id,
+        pagination=pagination,
+    )
+    return PageResponse(
+        items=[EvaluationResponse.model_validate(result) for result in results.items],
+        next_cursor=results.next_cursor,
+    )
 
 
 @evaluation_router.delete(

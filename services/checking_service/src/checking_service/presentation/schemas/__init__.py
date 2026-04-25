@@ -1,8 +1,5 @@
 from checking_service.presentation.schemas.base_schema import BaseSchema
-from checking_service.presentation.schemas.pagination import (
-    CursorPage,
-    CursorPaginationRequest,
-)
+from checking_service.presentation.schemas.pagination import PageResponse
 from checking_service.presentation.schemas.input_case import (
     InputCaseResponse,
     CreateInputCaseRequest,
@@ -21,8 +18,7 @@ from checking_service.presentation.schemas.preview_run import (
 
 __all__ = (
     "BaseSchema",
-    "CursorPaginationRequest",
-    "CursorPage",
+    "PageResponse",
     "InputCaseResponse",
     "CreateInputCaseRequest",
     "UpdateInputCaseRequest",

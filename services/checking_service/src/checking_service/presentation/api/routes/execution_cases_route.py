@@ -1,14 +1,15 @@
 from uuid import UUID
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, status, Query
 
+from checking_service.application.models.pagination import CursorPagination
 from checking_service.application.use_cases.execution_case import (
     GetExecutionCaseUseCase,
     GetExecutionCasesByEvaluationUseCase,
     GetExecutionCasePageUseCase,
 )
-from checking_service.presentation.schemas import ExecutionCaseResponse
+from checking_service.presentation.schemas import ExecutionCaseResponse, PageResponse
 from checking_service.presentation.dependencies.execution_case_use_cases import (
     get_use_case_get_execution_case,
     get_use_case_get_by_evaluation_execution_cases,
@@ -46,3 +47,32 @@ async def get_execution_cases_by_evaluation(
 ) -> list[ExecutionCaseResponse]:
     results = await use_case.execute(evaluation_id=evaluation_id)
     return [ExecutionCaseResponse.model_validate(result) for result in results]
+
+
+@execution_case_router.get(
+    "/evaluation/{evaluation_id}/page",
+    response_model=PageResponse[ExecutionCaseResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def get_execution_case_page(
+    evaluation_id: UUID,
+    use_case: Annotated[
+        GetExecutionCasePageUseCase, Depends(get_use_case_get_execution_case_page)
+    ],
+    limit: int = Query(default=20, ge=1, le=100),
+    cursor: UUID | None = Query(default=None),
+) -> PageResponse[ExecutionCaseResponse]:
+    pagination = CursorPagination(
+        limit=limit,
+        cursor={"id": cursor} if cursor else None,
+    )
+    results = await use_case.execute(
+        evaluation_id=evaluation_id,
+        pagination=pagination,
+    )
+    return PageResponse(
+        items=[
+            ExecutionCaseResponse.model_validate(result) for result in results.items
+        ],
+        next_cursor=results.next_cursor,
+    )

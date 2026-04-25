@@ -22,6 +22,7 @@ class OutboxMessage:
     event_type: str
     payload: dict[str, Any]
     status: OutboxStatus = OutboxStatus.PENDING
-    retry_count: int = 0
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
     published_at: datetime | None = None
+    retry_count: int = 0
+    next_attempt_at: datetime | None = None

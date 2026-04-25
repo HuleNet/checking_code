@@ -18,10 +18,13 @@ class OutboxMessageORM(BaseModel):
     status: Mapped[OutboxStatus] = mapped_column(
         Enum(OutboxStatus, native_enum=False), nullable=False
     )
-    retry_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
     )
     published_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    retry_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    next_attempt_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

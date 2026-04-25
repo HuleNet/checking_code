@@ -18,6 +18,16 @@ class Settings(BaseSettings):
     broker_user: str
     broker_password: SecretStr
 
+    retry_enabled: bool
+    retry_default_attempts: int
+    retry_base_delay_sec: float
+    retry_max_delay_sec: float
+    outbox_max_retries: int
+    outbox_batch_size: int
+    runner_retry_attempts: int
+    runner_retry_base_delay_sec: float
+    runner_retry_max_delay_sec: float
+
     max_stdio_length: int
     stuck_time_sec: int
     time_limit_sec: int

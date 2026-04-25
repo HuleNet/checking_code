@@ -14,6 +14,9 @@ from checking_service.domain.enums import Language
 from checking_service.domain.entities import ExecutionCase
 from checking_service.application.models.runner_result import RunnerResult
 from checking_service.application.ports import Runner
+from checking_service.infrastructure.errors import TransientError
+from checking_service.infrastructure.utils import retryable
+from checking_service.infrastructure.core import get_settings_cached
 
 
 @dataclass
@@ -53,6 +56,12 @@ class DockerRunner(Runner):
         self.cpu_limit = cpu_limit
         self.executor_path = Path(__file__).parent / "executor.py"
 
+    @retryable(
+        attempts=get_settings_cached().runner_retry_attempts,
+        base_delay=get_settings_cached().runner_retry_base_delay_sec,
+        max_delay=get_settings_cached().runner_retry_max_delay_sec,
+        exceptions=(TransientError,),
+    )
     async def run(
         self,
         code: str,

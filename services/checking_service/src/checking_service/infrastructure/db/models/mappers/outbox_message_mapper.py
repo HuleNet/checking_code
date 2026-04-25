@@ -12,9 +12,10 @@ class OutboxMessageMapper:
             event_type=orm.event_type,
             payload=orm.payload,
             status=orm.status,
-            retry_count=orm.retry_count,
             created_at=orm.created_at,
             published_at=orm.published_at,
+            retry_count=orm.retry_count,
+            next_attempt_at=orm.next_attempt_at,
         )
 
     @staticmethod
@@ -24,7 +25,8 @@ class OutboxMessageMapper:
             "event_type": app_model.event_type,
             "payload": app_model.payload,
             "status": app_model.status,
-            "retry_count": app_model.retry_count,
             "created_at": app_model.created_at,
             "published_at": app_model.published_at,
+            "retry_count": app_model.retry_count,
+            "next_attempt_at": app_model.next_attempt_at,
         }
