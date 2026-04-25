@@ -1,6 +1,5 @@
 from checking_service.domain.enums import ExecutionStatus, CheckType
 from checking_service.application.models.judge_request import JudgeRequest
-from checking_service.application.errors import JudgeCompareError
 
 
 class JudgeService:
@@ -60,15 +59,9 @@ class JudgeService:
         try:
             expected_values = list(map(float, expected.split()))
             actual_values = list(map(float, actual.split()))
+
         except ValueError:
-            raise JudgeCompareError(
-                message="Can't map to float",
-                details={
-                    "check_type": CheckType.FLOAT_COMPARE.value,
-                    "expected": expected,
-                    "actual": actual,
-                },
-            )
+            return ExecutionStatus.WRONG_ANSWER
 
         if len(expected_values) != len(actual_values):
             return ExecutionStatus.WRONG_ANSWER

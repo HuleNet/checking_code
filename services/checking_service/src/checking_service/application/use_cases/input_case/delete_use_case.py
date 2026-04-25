@@ -3,7 +3,11 @@ from uuid import UUID
 from checking_service.application.dto.input_case import InputCaseDTO
 from checking_service.application.dto.mappers import InputCaseMapper
 from checking_service.application.ports import UnitOfWork
-from checking_service.application.errors import NotFoundError
+from checking_service.application.errors import (
+    ApplicationError,
+    NotFoundError,
+    InternalError,
+)
 
 
 class DeleteInputCaseUseCase:
@@ -11,17 +15,31 @@ class DeleteInputCaseUseCase:
         self.uow = uow
 
     async def execute(self, id: UUID) -> InputCaseDTO:
-        async with self.uow as uow:
-            domain_result = await uow.input_case_repo.delete(id=id)
+        try:
+            async with self.uow as uow:
+                domain_result = await uow.input_case_repo.delete(id=id)
 
-            if domain_result is None:
-                raise NotFoundError(
-                    message="InputCase not found",
-                    details={
-                        "id": id,
-                    },
-                )
+                if domain_result is None:
+                    raise NotFoundError(
+                        message="InputCase not found",
+                        details={
+                            "entity": "input_case",
+                            "id": id,
+                        },
+                    )
 
-            await uow.commit()
+                await uow.commit()
 
-        return InputCaseMapper.to_dto(domain=domain_result)
+            return InputCaseMapper.to_dto(domain=domain_result)
+
+        except ApplicationError:
+            raise
+
+        except Exception as exc:
+            raise InternalError(
+                message="Failed to delete InputCase",
+                details={
+                    "entity": "input_case",
+                    "id": id,
+                },
+            ) from exc

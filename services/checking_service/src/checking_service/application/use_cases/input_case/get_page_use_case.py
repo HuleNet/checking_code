@@ -4,6 +4,7 @@ from checking_service.application.dto.input_case import InputCaseDTO
 from checking_service.application.dto.mappers import InputCaseMapper
 from checking_service.application.models.pagination import CursorPagination, Page
 from checking_service.application.ports import UnitOfWork
+from checking_service.application.errors import ApplicationError, InternalError
 
 
 class GetInputCasePageUseCase:
@@ -13,14 +14,29 @@ class GetInputCasePageUseCase:
     async def execute(
         self, assignment_id: UUID, pagination: CursorPagination
     ) -> Page[InputCaseDTO]:
-        async with self.uow as uow:
-            domain_page = await uow.input_case_repo.get_page(
-                assignment_id=assignment_id, pagination=pagination
+        try:
+            async with self.uow as uow:
+                domain_page = await uow.input_case_repo.get_page(
+                    assignment_id=assignment_id, pagination=pagination
+                )
+
+            return Page(
+                items=[
+                    InputCaseMapper.to_dto(domain=domain)
+                    for domain in domain_page.items
+                ],
+                next_cursor=domain_page.next_cursor,
             )
 
-        return Page(
-            items=[
-                InputCaseMapper.to_dto(domain=domain) for domain in domain_page.items
-            ],
-            next_cursor=domain_page.next_cursor,
-        )
+        except ApplicationError:
+            raise
+
+        except Exception as exc:
+            raise InternalError(
+                message="Failed to get InputCase page",
+                details={
+                    "entity": "input_case",
+                    "assignment_id": assignment_id,
+                    "is_page": True,
+                },
+            ) from exc

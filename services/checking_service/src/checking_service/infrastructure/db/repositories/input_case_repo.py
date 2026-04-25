@@ -11,7 +11,7 @@ from checking_service.infrastructure.db.models import InputCaseORM
 from checking_service.infrastructure.db.models.mappers import InputCaseMapper
 from checking_service.infrastructure.errors import (
     RepositoryIntegrityError,
-    InternalRepositoryError,
+    RepositoryInternalError,
 )
 
 
@@ -34,14 +34,20 @@ class SQLAlchemyInputCaseRepository(InputCaseRepository):
             raise RepositoryIntegrityError(
                 message="InputCase already exists",
                 details={
+                    "entity": "input_case",
+                    "operation": "insert",
                     "id": input_case.id,
                 },
             ) from exc
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to insert InputCase",
+                details={
+                    "entity": "input_case",
+                    "operation": "insert",
+                    "id": input_case.id,
+                },
             ) from exc
 
         orm = orm_result.scalar_one()
@@ -54,9 +60,13 @@ class SQLAlchemyInputCaseRepository(InputCaseRepository):
             orm_result = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to fetch InputCase",
+                details={
+                    "entity": "input_case",
+                    "operation": "get",
+                    "id": id,
+                },
             ) from exc
 
         orm = orm_result.scalar_one_or_none()
@@ -73,9 +83,13 @@ class SQLAlchemyInputCaseRepository(InputCaseRepository):
             orm_results = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to fetch InputCases by assignment",
+                details={
+                    "entity": "input_case",
+                    "operation": "get_by_assignment",
+                    "assignment_id": assignment_id,
+                },
             ) from exc
 
         return [
@@ -96,9 +110,15 @@ class SQLAlchemyInputCaseRepository(InputCaseRepository):
             orm_results = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to fetch InputCase page",
+                details={
+                    "entity": "input_case",
+                    "operation": "get_page",
+                    "assignment_id": assignment_id,
+                    "limit": pagination.limit,
+                    "cursor": pagination.cursor,
+                },
             ) from exc
 
         orms = orm_results.scalars().all()
@@ -133,18 +153,25 @@ class SQLAlchemyInputCaseRepository(InputCaseRepository):
 
         except IntegrityError as exc:
             raise RepositoryIntegrityError(
-                message="Update InputCase failed",
+                message="Failed to update InputCase",
                 details={
-                    "updated_input_data": input_case.input_data,
-                    "updated_expected_output": input_case.expected_output,
-                    "updated_check_type": input_case.check_type.value,
+                    "entity": "input_case",
+                    "operation": "update",
+                    "id": input_case.id,
+                    "input_data": input_case.input_data,
+                    "expected_output": input_case.expected_output,
+                    "check_type": input_case.check_type.value,
                 },
             ) from exc
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to update InputCase",
+                details={
+                    "entity": "input_case",
+                    "operation": "update",
+                    "id": input_case.id,
+                },
             ) from exc
 
         orm = orm_result.scalar_one()
@@ -157,9 +184,13 @@ class SQLAlchemyInputCaseRepository(InputCaseRepository):
             orm_result = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to delete InputCase",
+                details={
+                    "entity": "input_case",
+                    "operation": "delete",
+                    "id": id,
+                },
             ) from exc
 
         orm = orm_result.scalar_one_or_none()

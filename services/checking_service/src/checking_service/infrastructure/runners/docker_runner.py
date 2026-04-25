@@ -87,7 +87,7 @@ class DockerRunner(Runner):
             self._copy_files(container, code, execution_cases, config)
             container.start()
             timeout = False
-            
+
             while True:
                 container.reload()
                 status = container.status
@@ -136,7 +136,7 @@ class DockerRunner(Runner):
 
             try:
                 data = loads(stdout)
-                
+
             except Exception:
                 return self._fail_all(
                     execution_cases,
@@ -150,9 +150,7 @@ class DockerRunner(Runner):
                     data.get("stderr", ""),
                 )
 
-            result_map: dict[str, dict[str, Any]] = {
-                r["id"]: r for r in data
-            }
+            result_map: dict[str, dict[str, Any]] = {r["id"]: r for r in data}
 
             return [
                 RunnerResult(
@@ -169,13 +167,15 @@ class DockerRunner(Runner):
 
         except Exception as e:
             duration_ms = int((time() - start_time) * 1000)
-            return self._fail_all(execution_cases, duration_ms, f"RUNNER_ERROR: {str(e)}")
+            return self._fail_all(
+                execution_cases, duration_ms, f"RUNNER_ERROR: {str(e)}"
+            )
 
         finally:
             if container:
                 try:
                     container.remove(force=True)
-                    
+
                 except Exception:
                     pass
 

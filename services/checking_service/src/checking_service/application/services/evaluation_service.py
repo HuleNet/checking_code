@@ -4,12 +4,8 @@ from checking_service.application.models.enums import PreviewEvaluationStatus
 from checking_service.application.models.factories import JudgeRequestFactory
 from checking_service.application.ports import Runner
 from checking_service.application.services import JudgeService
-from checking_service.application.errors import (
-    RunnerError,
-    RunnerContractViolationError,
-    JudgeError,
-    JudgeCompareError,
-)
+from checking_service.application.errors import ExecutionError, ExecutionContractError
+from checking_service.infrastructure.errors import RunnerError
 
 
 class EvaluationService:
@@ -39,15 +35,27 @@ class EvaluationService:
                 execution_cases=execution_cases,
             )
 
-        # ЗАМЕНИТЬ НА INFRA_RUNNER-ERROR
+        except RunnerError as exc:
+            raise ExecutionError(
+                message="Execution failed",
+                details={
+                    "stage": "runner",
+                    "language": language.value,
+                    "execution-cases_count": len(execution_cases),
+                },
+            ) from exc
+
         except Exception as exc:
-            raise RunnerError(
-                message="Runner execution failed",
-                details={},
+            raise ExecutionError(
+                message="Unexpected execution failure",
+                details={
+                    "stage": "runner",
+                    "language": language.value,
+                },
             ) from exc
 
         if len(runner_results) != len(execution_cases):
-            raise RunnerContractViolationError(
+            raise ExecutionContractError(
                 message="Runner returned incorrect number of results",
                 details={
                     "expected": len(execution_cases),
@@ -62,10 +70,11 @@ class EvaluationService:
 
         for runner_result in runner_results:
             if runner_result.execution_case_id in seen_ids:
-                raise RunnerContractViolationError(
-                    message="Duplicate ExecutionCase ID in runner results",
+                raise ExecutionContractError(
+                    message="Duplicate ExecutionCase id",
                     details={
                         "execution_case_id": runner_result.execution_case_id,
+                        "reason": "duplicate_id",
                     },
                 )
 
@@ -73,10 +82,11 @@ class EvaluationService:
             execution_case = execution_case_map.get(runner_result.execution_case_id)
 
             if execution_case is None:
-                raise RunnerContractViolationError(
-                    message="ExecutionCase in runner results not found",
+                raise ExecutionContractError(
+                    message="Unknown ExecutionCase id",
                     details={
                         "execution_case_id": runner_result.execution_case_id,
+                        "reason": "unknown_execution_case",
                     },
                 )
 
@@ -86,10 +96,13 @@ class EvaluationService:
                 )
                 status = self.judge.evaluate(request=request)
 
-            except JudgeCompareError as exc:
-                raise JudgeError(
-                    message="Judge evaluation failed",
-                    details=exc.details,
+            except Exception as exc:
+                raise ExecutionError(
+                    message="Execution failed",
+                    details={
+                        "stage": "judge",
+                        "check_type": request.check_type.value,
+                    },
                 ) from exc
 
             execution_case.apply_result(

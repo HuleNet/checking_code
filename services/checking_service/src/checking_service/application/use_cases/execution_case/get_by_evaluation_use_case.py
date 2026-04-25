@@ -3,6 +3,7 @@ from uuid import UUID
 from checking_service.application.dto.execution_case import ExecutionCaseDTO
 from checking_service.application.dto.mappers import ExecutionCaseMapper
 from checking_service.application.ports import UnitOfWork
+from checking_service.application.errors import ApplicationError, InternalError
 
 
 class GetExecutionCasesByEvaluationUseCase:
@@ -10,9 +11,25 @@ class GetExecutionCasesByEvaluationUseCase:
         self.uow = uow
 
     async def execute(self, evaluation_id: UUID) -> list[ExecutionCaseDTO]:
-        async with self.uow as uow:
-            domain_results = await uow.execution_case_repo.get_by_evaluation(
-                evaluation_id=evaluation_id
-            )
+        try:
+            async with self.uow as uow:
+                domain_results = await uow.execution_case_repo.get_by_evaluation(
+                    evaluation_id=evaluation_id
+                )
 
-        return [ExecutionCaseMapper.to_dto(domain=domain) for domain in domain_results]
+            return [
+                ExecutionCaseMapper.to_dto(domain=domain) for domain in domain_results
+            ]
+
+        except ApplicationError:
+            raise
+
+        except Exception as exc:
+            raise InternalError(
+                message="Failed to get ExecutionCases",
+                details={
+                    "entity": "execution_case",
+                    "evaluation_id": evaluation_id,
+                    "is_page": False,
+                },
+            ) from exc

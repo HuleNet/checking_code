@@ -44,7 +44,7 @@ def main() -> None:
     try:
         with open("input.json", "r") as f:
             payload = load(f)
-            
+
     except Exception as e:
         print(dumps({"fatal_error": f"invalid_input: {str(e)}"}))
         return
@@ -60,7 +60,7 @@ def main() -> None:
     try:
         with open(filename, "w") as f:
             f.write(code)
-            
+
     except Exception as e:
         print(dumps({"fatal_error": f"write_failed: {str(e)}"}))
         return
@@ -68,24 +68,30 @@ def main() -> None:
     if compile_cmd:
         comp = run_process(compile_cmd, "", timeout)
         if comp["timeout"] or comp["exit_code"] != 0:
-            print(dumps({
-                "compile_error": True,
-                "stderr": comp["stderr"],
-            }))
+            print(
+                dumps(
+                    {
+                        "compile_error": True,
+                        "stderr": comp["stderr"],
+                    }
+                )
+            )
             return
 
     results: list[dict[str, Any]] = []
 
     for test in tests:
         result = run_process(run_cmd, test["input"], timeout)
-        results.append({
-            "id": test["id"],
-            "stdout": result["stdout"],
-            "stderr": result["stderr"],
-            "exit_code": result["exit_code"],
-            "timeout": result["timeout"],
-            "execution_time_ms": result["execution_time_ms"],
-        })
+        results.append(
+            {
+                "id": test["id"],
+                "stdout": result["stdout"],
+                "stderr": result["stderr"],
+                "exit_code": result["exit_code"],
+                "timeout": result["timeout"],
+                "execution_time_ms": result["execution_time_ms"],
+            }
+        )
 
     print(dumps(results))
 

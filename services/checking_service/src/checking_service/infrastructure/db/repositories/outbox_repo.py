@@ -12,7 +12,7 @@ from checking_service.infrastructure.db.models import OutboxMessageORM
 from checking_service.infrastructure.db.models.mappers import OutboxMessageMapper
 from checking_service.infrastructure.errors import (
     RepositoryIntegrityError,
-    InternalRepositoryError,
+    RepositoryInternalError,
 )
 
 
@@ -31,14 +31,22 @@ class SQLAlchemyOutboxRepository(OutboxRepository):
 
         except IntegrityError as exc:
             raise RepositoryIntegrityError(
-                message="Outbox message already exists",
-                details={"id": message.id},
+                message="OutboxMessage already exists",
+                details={
+                    "entity": "outbox_message",
+                    "operation": "insert",
+                    "id": message.id,
+                },
             ) from exc
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to insert OutboxMessage",
+                details={
+                    "entity": "outbox_message",
+                    "operation": "insert",
+                    "id": message.id,
+                },
             ) from exc
 
     async def claim_batch(self, limit: int) -> list[OutboxMessage]:
@@ -60,9 +68,13 @@ class SQLAlchemyOutboxRepository(OutboxRepository):
             orm_results = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to claim OutboxMessage",
+                details={
+                    "entity": "outbox_message",
+                    "operation": "claim_batch",
+                    "limit": limit,
+                },
             ) from exc
 
         return [
@@ -78,23 +90,33 @@ class SQLAlchemyOutboxRepository(OutboxRepository):
                 status=OutboxStatus.PUBLISHED,
                 published_at=datetime.now(timezone.utc),
             )
+            .returning(self.model)
         )
 
         try:
-            query_result = await self.session.execute(query)
+            orm_result = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={"id": id},
+            raise RepositoryInternalError(
+                message="Failed to mark OutboxMessage as published",
+                details={
+                    "entity": "outbox_message",
+                    "operation": "mark_published",
+                    "id": id,
+                },
             ) from exc
 
-        if query_result.rowcount == 0:  # type: ignore[attr-defined]
+        orm = orm_result.scalar_one_or_none()
+
+        if orm is None:
             raise RepositoryIntegrityError(
-                message="Outbox message not in processing state",
+                message="OutboxMessage not found or invalid state",
                 details={
+                    "entity": "outbox_message",
+                    "operation": "mark_published",
                     "id": id,
-                    "reason": "invalid_state_transition",
+                    "expected_status": OutboxStatus.PROCESSING.value,
+                    "reason": "stale_state_or_not_found",
                 },
             )
 
@@ -106,22 +128,32 @@ class SQLAlchemyOutboxRepository(OutboxRepository):
                 status=OutboxStatus.FAILED,
                 retry_count=self.model.retry_count + 1,
             )
+            .returning(self.model)
         )
 
         try:
-            query_result = await self.session.execute(query)
+            orm_result = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={"id": id},
+            raise RepositoryInternalError(
+                message="Failed to mark OutboxMessage as failed",
+                details={
+                    "entity": "outbox_message",
+                    "operation": "mark_failed",
+                    "id": id,
+                },
             ) from exc
 
-        if query_result.rowcount == 0:  # type: ignore[attr-defined]
+        orm = orm_result.scalar_one_or_none()
+
+        if orm is None:
             raise RepositoryIntegrityError(
-                message="Outbox message not in processing state",
+                message="OutboxMessage not found or invalid state",
                 details={
+                    "entity": "outbox_message",
+                    "operation": "mark_failed",
                     "id": id,
-                    "reason": "invalid_state_transition",
+                    "expected_status": OutboxStatus.PROCESSING.value,
+                    "reason": "stale_state_or_not_found",
                 },
             )

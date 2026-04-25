@@ -13,7 +13,7 @@ from checking_service.infrastructure.db.models import EvaluationORM
 from checking_service.infrastructure.db.models.mappers import EvaluationMapper
 from checking_service.infrastructure.errors import (
     RepositoryIntegrityError,
-    InternalRepositoryError,
+    RepositoryInternalError,
 )
 
 
@@ -36,14 +36,20 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
             raise RepositoryIntegrityError(
                 message="Evaluation already exists",
                 details={
+                    "entity": "evaluation",
+                    "operation": "insert",
                     "id": evaluation.id,
                 },
             ) from exc
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to insert Evaluation",
+                details={
+                    "entity": "evaluation",
+                    "operation": "insert",
+                    "id": evaluation.id,
+                },
             ) from exc
 
         orm = orm_result.scalar_one()
@@ -56,9 +62,13 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
             orm_result = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to fetch Evaluation",
+                details={
+                    "entity": "evaluation",
+                    "operation": "get",
+                    "id": id,
+                },
             ) from exc
 
         orm = orm_result.scalar_one_or_none()
@@ -75,9 +85,13 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
             orm_results = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to fetch Evaluations by submission",
+                details={
+                    "entity": "evaluation",
+                    "operation": "get_by_submission",
+                    "submission_id": submission_id,
+                },
             ) from exc
 
         return [
@@ -98,9 +112,15 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
             orm_results = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to fetch Evaluation page",
+                details={
+                    "entity": "evaluation",
+                    "operation": "get_page",
+                    "submission_id": submission_id,
+                    "limit": pagination.limit,
+                    "cursor": pagination.cursor,
+                },
             ) from exc
 
         orms = orm_results.scalars().all()
@@ -149,9 +169,14 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
             orm_result = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to claim Evaluation for run",
+                details={
+                    "entity": "evaluation",
+                    "operation": "claim_for_run",
+                    "id": id,
+                    "stuck_timeout_sec": stuck_timeout_sec,
+                },
             ) from exc
 
         orm = orm_result.scalar_one_or_none()
@@ -181,17 +206,24 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
 
         except IntegrityError as exc:
             raise RepositoryIntegrityError(
-                message="Update Evaluation failed",
+                message="Failed to update Evaluation",
                 details={
-                    "updated_status": evaluation.status.value,
-                    "updated_passed_tests_count": evaluation.passed_tests_count,
+                    "entity": "evaluation",
+                    "operation": "update",
+                    "id": evaluation.id,
+                    "status": evaluation.status.value,
+                    "passed_tests_count": evaluation.passed_tests_count,
                 },
             ) from exc
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to update Evaluation",
+                details={
+                    "entity": "evaluation",
+                    "operation": "update",
+                    "id": evaluation.id,
+                },
             ) from exc
 
         orm = orm_result.scalar_one_or_none()
@@ -200,9 +232,12 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
             raise RepositoryIntegrityError(
                 message="Evaluation not found or invalid state",
                 details={
+                    "entity": "evaluation",
+                    "operation": "update",
                     "id": evaluation.id,
+                    "expected_status": EvaluationStatus.RUNNING.value,
                     "expected_started_at": evaluation.started_at,
-                    "reason": "optimistic_lock_failed",
+                    "reason": "stale_state_or_not_found",
                 },
             )
 
@@ -215,9 +250,13 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
             orm_result = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to delete Evaluation",
+                details={
+                    "entity": "evaluation",
+                    "operation": "delete",
+                    "id": id,
+                },
             ) from exc
 
         orm = orm_result.scalar_one_or_none()

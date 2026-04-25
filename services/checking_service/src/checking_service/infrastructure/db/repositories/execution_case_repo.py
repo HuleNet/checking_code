@@ -11,7 +11,7 @@ from checking_service.infrastructure.db.models import ExecutionCaseORM
 from checking_service.infrastructure.db.models.mappers import ExecutionCaseMapper
 from checking_service.infrastructure.errors import (
     RepositoryIntegrityError,
-    InternalRepositoryError,
+    RepositoryInternalError,
 )
 
 
@@ -37,16 +37,22 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
 
         except IntegrityError as exc:
             raise RepositoryIntegrityError(
-                message="Bulk insert ExecutionCases failed",
+                message="Some of ExecutionCases already exist",
                 details={
+                    "entity": "execution_case",
+                    "operation": "bulk_insert",
                     "execution_cases_count": len(execution_cases),
                 },
             ) from exc
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to bulk insert ExecutionCases",
+                details={
+                    "entity": "execution_case",
+                    "operation": "bulk_insert",
+                    "execution_cases_count": len(execution_cases),
+                },
             ) from exc
 
         return execution_cases
@@ -58,9 +64,13 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
             orm_result = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to fetch ExecutionCase",
+                details={
+                    "entity": "execution_case",
+                    "operation": "get",
+                    "id": id,
+                },
             ) from exc
 
         orm = orm_result.scalar_one_or_none()
@@ -77,9 +87,13 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
             orm_results = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to fetch ExecutionCases by evaluation",
+                details={
+                    "entity": "execution_case",
+                    "operation": "get_by_evaluation",
+                    "evaluation_id": evaluation_id,
+                },
             ) from exc
 
         return [
@@ -101,9 +115,15 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
             orm_results = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to fetch ExecutionCase page",
+                details={
+                    "entity": "execution_case",
+                    "operation": "get_page",
+                    "evaluation": evaluation_id,
+                    "limit": pagination.limit,
+                    "cursor": pagination.cursor,
+                },
             ) from exc
 
         orms = orm_results.scalars().all()
@@ -133,19 +153,31 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
             .where(self.model.id.in_(ids))
             .values(
                 status=case(
-                    {execution_case.id: execution_case.status for execution_case in execution_cases},
+                    {
+                        execution_case.id: execution_case.status
+                        for execution_case in execution_cases
+                    },
                     value=self.model.id,
                 ),
                 stdout=case(
-                    {execution_case.id: execution_case.stdout for execution_case in execution_cases},
+                    {
+                        execution_case.id: execution_case.stdout
+                        for execution_case in execution_cases
+                    },
                     value=self.model.id,
                 ),
                 stderr=case(
-                    {execution_case.id: execution_case.stderr for execution_case in execution_cases},
+                    {
+                        execution_case.id: execution_case.stderr
+                        for execution_case in execution_cases
+                    },
                     value=self.model.id,
                 ),
                 execution_time_ms=case(
-                    {execution_case.id: execution_case.execution_time_ms for execution_case in execution_cases},
+                    {
+                        execution_case.id: execution_case.execution_time_ms
+                        for execution_case in execution_cases
+                    },
                     value=self.model.id,
                 ),
             )
@@ -154,10 +186,24 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
         try:
             await self.session.execute(query)
 
+        except IntegrityError as exc:
+            raise RepositoryIntegrityError(
+                message="Failed to bulk update ExecutionCases",
+                details={
+                    "entity": "execution_case",
+                    "operation": "bulk_update",
+                    "execution_cases_count": len(execution_cases),
+                },
+            ) from exc
+
         except SQLAlchemyError as exc:
-            raise InternalRepositoryError(
-                message="Database error",
-                details={},
+            raise RepositoryInternalError(
+                message="Failed to bulk update ExecutionCases",
+                details={
+                    "entity": "execution_case",
+                    "operation": "bulk_update",
+                    "execution_cases_count": len(execution_cases),
+                },
             ) from exc
 
         return execution_cases

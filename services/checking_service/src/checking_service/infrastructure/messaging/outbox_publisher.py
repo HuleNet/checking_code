@@ -50,7 +50,7 @@ async def main() -> None:
         batch_size=10,
     )
     await publisher.run_forever()
-    
-    
-if __name__ =="__main__":
-    run(main())    
+
+
+if __name__ == "__main__":
+    run(main())
