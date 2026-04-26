@@ -1,7 +1,11 @@
+from logging import getLogger
 from asyncio import sleep
 from random import uniform
 from functools import wraps
 from typing import Callable
+
+
+logger = getLogger(__name__)
 
 
 def retryable(
@@ -18,11 +22,30 @@ def retryable(
                 try:
                     return await fn(*args, **kwargs)
 
-                # exc для logger
                 except exceptions as exc:
                     if attempt == attempts:
+                        logger.error(
+                            "retry_exhausted",
+                            extra={
+                                "extra": {
+                                    "function": fn.__name__,
+                                    "attempts": attempts,
+                                }
+                            },
+                        )
                         raise
 
+                    logger.warning(
+                        "retryable_error",
+                        extra={
+                            "extra": {
+                                "function": fn.__name__,
+                                "attempt": attempt,
+                                "attempts": attempts,
+                                "error": repr(exc),
+                            }
+                        },
+                    )
                     delay = min(max_delay, base_delay * (2 ** (attempt - 1)))
                     delay += uniform(0, delay * 0.2)
 

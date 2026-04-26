@@ -1,3 +1,4 @@
+from logging import getLogger
 from uuid import uuid4
 
 from checking_service.application.dto.submission import SubmissionDTO
@@ -21,11 +22,24 @@ from checking_service.application.errors import (
 )
 
 
+logger = getLogger(__name__)
+
+
 class StartEvaluationUseCase:
     def __init__(self, uow: UnitOfWork) -> None:
         self.uow = uow
 
     async def execute(self, submission: SubmissionDTO) -> EvaluationDTO:
+        logger.info(
+            "start_evaluation",
+            extra={
+                "extra": {
+                    "submission_id": str(submission.id),
+                    "assignment_id": str(submission.assignment_id),
+                }
+            },
+        )
+
         try:
             submission_domain = SubmissionMapper.to_domain(dto=submission)
 

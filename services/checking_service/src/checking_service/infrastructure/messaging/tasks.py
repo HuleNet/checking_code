@@ -1,5 +1,6 @@
 from asyncio import run
 
+from checking_service.application.dto.mappers import DomainEnumsMapper
 from checking_service.application.models.outbox import RunEvaluationRequested
 from checking_service.infrastructure.core import celery_app
 from checking_service.infrastructure.errors import TransientError, PermanentError
@@ -20,7 +21,7 @@ def run_evaluation(self, **payload):
             evaluation_id=payload["evaluation_id"],
             submission_id=payload["submission_id"],
             assignment_id=payload["assignment_id"],
-            language=payload["language"],
+            language=DomainEnumsMapper.map_language(payload["language"]),
             code=payload["code"],
         )
         run(use_case.execute(event=event))

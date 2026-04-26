@@ -1,3 +1,4 @@
+from logging import getLogger
 from io import BytesIO
 from dataclasses import dataclass
 from json import dumps, loads
@@ -17,6 +18,9 @@ from checking_service.application.ports import Runner
 from checking_service.infrastructure.errors import TransientError
 from checking_service.infrastructure.utils import retryable
 from checking_service.infrastructure.core import get_settings_cached
+
+
+logger = getLogger(__name__)
 
 
 @dataclass
@@ -68,6 +72,14 @@ class DockerRunner(Runner):
         language: Language,
         execution_cases: list[ExecutionCase],
     ) -> list[RunnerResult]:
+        logger.info(
+            "docker_run_started",
+            extra={
+                "extra": {
+                    "language": language.value,
+                },
+            },
+        )
         return await to_thread(self._run_sync, code, language, execution_cases)
 
     def _run_sync(
@@ -175,6 +187,7 @@ class DockerRunner(Runner):
             ]
 
         except Exception as e:
+            logger.exception("docker_run_failed")
             duration_ms = int((time() - start_time) * 1000)
             return self._fail_all(
                 execution_cases, duration_ms, f"RUNNER_ERROR: {str(e)}"

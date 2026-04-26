@@ -1,4 +1,7 @@
+from logging import getLogger
+
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from checking_service.application.errors import (
@@ -8,6 +11,9 @@ from checking_service.application.errors import (
     ExecutionError,
     InternalError,
 )
+
+
+logger = getLogger(__name__)
 
 
 def _resolve_status_code(exc: ApplicationError) -> int:
@@ -41,6 +47,15 @@ def register_exception_handlers(app: FastAPI) -> None:
     async def application_exception_handler(
         request: Request, exc: ApplicationError
     ) -> JSONResponse:
+        logger.warning(
+            "application_error",
+            extra={
+                "extra": {
+                    "code": exc.code,
+                    "path": request.url.path,
+                }
+            },
+        )
         return JSONResponse(
             status_code=_resolve_status_code(exc=exc),
             content=_build_error_response(exc=exc),
@@ -51,6 +66,15 @@ def register_exception_handlers(app: FastAPI) -> None:
         request: Request,
         exc: Exception,
     ) -> JSONResponse:
+        logger.exception(
+            "unexpected_exception",
+            extra={
+                "extra": {
+                    "path": request.url.path,
+                    "method": request.method,
+                }
+            },
+        )
         return JSONResponse(
             status_code=500,
             content={
@@ -58,6 +82,32 @@ def register_exception_handlers(app: FastAPI) -> None:
                     "code": "unexpected_error",
                     "message": "Unexpected internal server error",
                     "details": {},
+                }
+            },
+        )
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_exception_handler(
+        request: Request,
+        exc: RequestValidationError,
+    ) -> JSONResponse:
+        logger.warning(
+            "request_validation_error",
+            extra={
+                "extra": {
+                    "path": request.url.path,
+                    "method": request.method,
+                    "errors": exc.errors(),
+                }
+            },
+        )
+        return JSONResponse(
+            status_code=422,
+            content={
+                "error": {
+                    "code": "validation_error",
+                    "message": "Request validation failed",
+                    "details": exc.errors(),
                 }
             },
         )

@@ -1,3 +1,5 @@
+from logging import getLogger
+
 from checking_service.domain.enums import ExecutionStatus, Language
 from checking_service.domain.entities import ExecutionCase
 from checking_service.application.models.enums import PreviewEvaluationStatus
@@ -5,7 +7,9 @@ from checking_service.application.models.factories import JudgeRequestFactory
 from checking_service.application.ports import Runner
 from checking_service.application.services import JudgeService
 from checking_service.application.errors import ExecutionError, ExecutionContractError
-from checking_service.infrastructure.errors import RunnerError
+
+
+logger = getLogger(__name__)
 
 
 class EvaluationService:
@@ -28,6 +32,16 @@ class EvaluationService:
         if not execution_cases:
             return []
 
+        logger.info(
+            "runner-call",
+            extra={
+                "extra": {
+                    "language": language.value,
+                    "execution_cases_count": len(execution_cases),
+                }
+            },
+        )
+
         try:
             runner_results = await self.runner.run(
                 code=code,
@@ -35,22 +49,22 @@ class EvaluationService:
                 execution_cases=execution_cases,
             )
 
-        except RunnerError as exc:
+        except Exception as exc:
+            logger.exception(
+                "runner_failed",
+                extra={
+                    "extra": {
+                        "language": language.value,
+                        "execution_cases_count": len(execution_cases),
+                    }
+                },
+            )
             raise ExecutionError(
                 message="Execution failed",
                 details={
                     "stage": "runner",
                     "language": language.value,
-                    "execution-cases_count": len(execution_cases),
-                },
-            ) from exc
-
-        except Exception as exc:
-            raise ExecutionError(
-                message="Unexpected execution failure",
-                details={
-                    "stage": "runner",
-                    "language": language.value,
+                    "execution_cases_count": len(execution_cases),
                 },
             ) from exc
 
@@ -62,6 +76,15 @@ class EvaluationService:
                     "actual": len(runner_results),
                 },
             )
+
+        logger.info(
+            "runner_completed",
+            extra={
+                "extra": {
+                    "execution_cases_count": len(execution_cases),
+                },
+            },
+        )
 
         execution_case_map = {
             execution_case.id: execution_case for execution_case in execution_cases
@@ -97,6 +120,14 @@ class EvaluationService:
                 status = self.judge.evaluate(request=request)
 
             except Exception as exc:
+                logger.exception(
+                    "judge_failed",
+                    extra={
+                        "extra": {
+                            "check_type": request.check_type.value,
+                        }
+                    },
+                )
                 raise ExecutionError(
                     message="Execution failed",
                     details={

@@ -1,3 +1,4 @@
+from logging import getLogger
 from uuid import uuid4
 
 from checking_service.application.dto.submission import PreviewSubmissionDTO
@@ -17,6 +18,9 @@ from checking_service.application.errors import (
 )
 
 
+logger = getLogger(__name__)
+
+
 class PreviewRunUseCase:
     def __init__(
         self,
@@ -27,6 +31,15 @@ class PreviewRunUseCase:
         self.evaluation_service = evaluation_service
 
     async def execute(self, submission: PreviewSubmissionDTO) -> PreviewEvaluationDTO:
+        logger.info(
+            "review_run_started",
+            extra={
+                "extra": {
+                    "assignment_id": str(submission.assignment_id),
+                }
+            },
+        )
+
         try:
             submission_domain = SubmissionMapper.to_domain_from_preview(dto=submission)
 

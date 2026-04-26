@@ -1,3 +1,4 @@
+from logging import getLogger
 from uuid import UUID
 
 from checking_service.application.models.outbox import RunEvaluationRequested
@@ -9,6 +10,9 @@ from checking_service.application.errors import (
     ExecutionError,
     InternalError,
 )
+
+
+logger = getLogger(__name__)
 
 
 class RunEvaluationUseCase:
@@ -23,6 +27,16 @@ class RunEvaluationUseCase:
         self.stuck_time_sec = stuck_time_sec
 
     async def execute(self, event: RunEvaluationRequested) -> None:
+        logger.info(
+            "run_evaluation_started",
+            extra={
+                "extra": {
+                    "evaluation_id": str(event.evaluation_id),
+                    "assignment_id": str(event.assignment_id),
+                }
+            },
+        )
+
         try:
             async with self.uow as uow:
                 evaluation_domain = await uow.evaluation_repo.claim_for_run(
@@ -31,6 +45,14 @@ class RunEvaluationUseCase:
                 )
 
                 if evaluation_domain is None:
+                    logger.info(
+                        "evaluation_not_claimed",
+                        extra={
+                            "extra": {
+                                "evaluation_id": str(event.evaluation_id),
+                            }
+                        },
+                    )
                     return
 
                 execution_cases = await uow.execution_case_repo.get_by_evaluation(
@@ -56,6 +78,14 @@ class RunEvaluationUseCase:
                 )
 
             except ExecutionError:
+                logger.warning(
+                    "evaluation_execution_failed",
+                    extra={
+                        "extra": {
+                            "evaluation_id": str(event.evaluation_id),
+                        }
+                    },
+                )
                 await self._mark_failed(evaluation_id=event.evaluation_id)
                 raise
 
@@ -79,6 +109,13 @@ class RunEvaluationUseCase:
                 evaluation_domain.recalculate(execution_cases=execution_cases)
                 await uow.evaluation_repo.update(evaluation=evaluation_domain)
                 await uow.commit()
+
+            logger.info(
+                "run_evaluation_finished",
+                extra={
+                    "extra": {"evaluation_id": str(event.evaluation_id)},
+                },
+            )
 
         except ApplicationError:
             raise
