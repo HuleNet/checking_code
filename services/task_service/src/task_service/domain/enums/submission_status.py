@@ -2,7 +2,7 @@ from task_service.domain.enums import BaseEnum
 
 
 class SubmissionStatus(BaseEnum):
-    CREATED = "CREATED"
-    CHECKING = "CHECKING"
-    DONE = "DONE"
+    PENDING = "PENDING"
+    IN_PROGRESS = "IN_PROGRESS"
+    COMPLETED = "COMPLETED"
     FAILED = "FAILED"

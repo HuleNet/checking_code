@@ -17,3 +17,11 @@ class BaseError(Exception):
 
 class DomainError(BaseError):
     code = "base_domain_error"
+
+
+class InvariantViolationError(DomainError):
+    code = "invariant_violation"
+
+
+class BusinessRuleViolationError(DomainError):
+    code = "business_rule_violation"
