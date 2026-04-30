@@ -16,7 +16,7 @@ class FinalResult:
     tests_total: int
     tests_passed: int
     plagiarism_score: float
-    plagiarism_flag: bool 
+    plagiarism_flag: bool
     finalized_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def __post_init__(self) -> None:
@@ -59,7 +59,7 @@ class FinalResult:
                     "tests_passed": self.tests_passed,
                 },
             )
-        
+
         if not (0 < self.plagiarism_score < 1):
             raise InvariantViolationError(
                 message="Plagiarism score must be in 0 to 1 interval",
