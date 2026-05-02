@@ -19,20 +19,21 @@ class UpdateInputCaseUseCase:
             async with self.uow as uow:
                 domain = await uow.input_case_repo.get(id=id)
 
-            if domain is None:
-                raise NotFoundError(
-                    message="InputCase not found",
-                    details={
-                        "entity": "input_case",
-                        "id": id,
-                    },
-                )
+                if domain is None:
+                    raise NotFoundError(
+                        message="InputCase not found",
+                        details={
+                            "entity": "input_case",
+                            "id": id,
+                        },
+                    )
 
-            updating_domain = InputCaseMapper.apply_update(
-                domain=domain, update_dto=dto
-            )
-            result_domain = await uow.input_case_repo.update(input_case=updating_domain)
-            await uow.commit()
+                updating_domain = InputCaseMapper.apply_update(
+                    domain=domain, update_dto=dto
+                )
+                result_domain = await uow.input_case_repo.update(input_case=updating_domain)
+                await uow.commit()
+                
             return InputCaseMapper.to_dto(domain=result_domain)
 
         except ApplicationError:
