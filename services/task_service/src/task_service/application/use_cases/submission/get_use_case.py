@@ -1,7 +1,7 @@
 from uuid import UUID
 
-from task_service.application.dto.assignment import AssignmentDTO
-from task_service.application.dto.mappers import AssignmentMapper
+from task_service.application.dto.submission import SubmissionDTO
+from task_service.application.dto.mappers import SubmissionMapper
 from task_service.application.ports import UnitOfWork
 from task_service.application.errors import (
     ApplicationError,
@@ -10,34 +10,34 @@ from task_service.application.errors import (
 )
 
 
-class GetAssignmentUseCase:
+class GetSubmissionUseCase:
     def __init__(self, uow: UnitOfWork) -> None:
         self.uow = uow
 
-    async def execute(self, id: UUID) -> AssignmentDTO:
+    async def execute(self, id: UUID) -> SubmissionDTO:
         try:
             async with self.uow as uow:
-                domain_result = await uow.assignment_repo.get(id=id)
+                domain_result = await uow.submission_repo.get(id=id)
 
             if domain_result is None:
                 raise NotFoundError(
-                    message="Assignment not found",
+                    message="Submission not found",
                     details={
-                        "entity": "assignment",
+                        "entity": "submission",
                         "id": id,
                     },
                 )
 
-            return AssignmentMapper.to_dto(domain=domain_result)
+            return SubmissionMapper.to_dto(domain=domain_result)
 
         except ApplicationError:
             raise
 
         except Exception as exc:
             raise InternalError(
-                message="Failed to get Assignment",
+                message="Failed to get Submission",
                 details={
-                    "entity": "assignment",
+                    "entity": "submission",
                     "id": id,
                 },
             ) from exc

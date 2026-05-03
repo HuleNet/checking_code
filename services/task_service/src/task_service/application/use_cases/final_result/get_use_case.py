@@ -1,7 +1,7 @@
 from uuid import UUID
 
-from task_service.application.dto.assignment import AssignmentDTO
-from task_service.application.dto.mappers import AssignmentMapper
+from task_service.application.dto.final_result import FinalResultDTO
+from task_service.application.dto.mappers import FinalResultMapper
 from task_service.application.ports import UnitOfWork
 from task_service.application.errors import (
     ApplicationError,
@@ -10,34 +10,34 @@ from task_service.application.errors import (
 )
 
 
-class GetAssignmentUseCase:
+class GetFinalResultUseCase:
     def __init__(self, uow: UnitOfWork) -> None:
         self.uow = uow
 
-    async def execute(self, id: UUID) -> AssignmentDTO:
+    async def execute(self, id: UUID) -> FinalResultDTO:
         try:
             async with self.uow as uow:
-                domain_result = await uow.assignment_repo.get(id=id)
+                domain_result = await uow.final_result_repo.get(id=id)
 
             if domain_result is None:
                 raise NotFoundError(
-                    message="Assignment not found",
+                    message="FinalResult not found",
                     details={
-                        "entity": "assignment",
+                        "entity": "final_result",
                         "id": id,
                     },
                 )
 
-            return AssignmentMapper.to_dto(domain=domain_result)
+            return FinalResultMapper.to_dto(domain=domain_result)
 
         except ApplicationError:
             raise
 
         except Exception as exc:
             raise InternalError(
-                message="Failed to get Assignment",
+                message="Failed to get FinalResult",
                 details={
-                    "entity": "assignment",
+                    "entity": "final_result",
                     "id": id,
                 },
             ) from exc

@@ -19,11 +19,11 @@ class Submission:
     code: str
     code_hash: CodeHash
     attempt_number: int
-    tests_total: int | None
-    tests_passed: int | None
     status: SubmissionStatus = SubmissionStatus.PENDING
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    tests_total: int | None = None
+    tests_passed: int | None = None
     checked_at: datetime | None = None
+    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def __post_init__(self) -> None:
         self._check_invariants()

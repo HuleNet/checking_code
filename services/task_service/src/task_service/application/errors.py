@@ -13,5 +13,9 @@ class NotFoundError(ApplicationError):
     code = "not_found"
 
 
+class SubmissionAttemptError(ApplicationError):
+    code = "submission_attempt_error"
+
+
 class InternalError(ApplicationError):
     code = "internal_error"
