@@ -10,6 +10,7 @@ from task_service.application.ports.repositories.submission_repo import (
 from task_service.application.ports.repositories.final_result_repo import (
     FinalResultRepository,
 )
+from task_service.application.ports.repositories.outbox_repo import OutboxRepository
 
 
 __all__ = (
@@ -17,4 +18,5 @@ __all__ = (
     "GroupAssignmentRepository",
     "SubmissionRepository",
     "FinalResultRepository",
+    "OutboxRepository",
 )

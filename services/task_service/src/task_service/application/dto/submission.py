@@ -25,3 +25,10 @@ class CreateSubmissionDTO:
     group_assignment_id: UUID
     language: str
     code: str
+
+
+@dataclass(frozen=True)
+class ApplySubmissionResultDTO:
+    id: UUID
+    tests_passed: int
+    tests_total: int

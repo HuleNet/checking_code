@@ -1,10 +1,15 @@
 from uuid import UUID
 
+from task_service.domain.errors import DomainError
 from task_service.application.dto.submission import SubmissionDTO
 from task_service.application.dto.mappers import SubmissionMapper
 from task_service.application.models.pagination import CursorPagination, Page
 from task_service.application.ports import UnitOfWork
-from task_service.application.errors import ApplicationError, InternalError
+from task_service.application.errors import (
+    ApplicationError,
+    InternalError,
+    ValidationError,
+)
 
 
 class GetSubmissionPageUseCase:
@@ -27,6 +32,12 @@ class GetSubmissionPageUseCase:
                 ],
                 next_cursor=domain_page.next_cursor,
             )
+
+        except DomainError as exc:
+            raise ValidationError(
+                message=exc.message,
+                details=exc.details,
+            ) from exc
 
         except ApplicationError:
             raise

@@ -1,6 +1,7 @@
 from uuid import uuid4
 
 from task_service.domain.value_objects import CodeHash
+from task_service.domain.errors import DomainError
 from task_service.application.dto.submission import SubmissionDTO, CreateSubmissionDTO
 from task_service.application.dto.mappers import SubmissionMapper
 from task_service.application.ports import UnitOfWork
@@ -9,6 +10,7 @@ from task_service.application.errors import (
     NotFoundError,
     SubmissionAttemptError,
     InternalError,
+    ValidationError,
 )
 
 
@@ -16,7 +18,6 @@ class CreateSubmissionUseCase:
     def __init__(self, uow: UnitOfWork, max_attempts: int) -> None:
         self.uow = uow
         self.max_attempts = max_attempts
-        # добавить порт checking_service
 
     async def execute(self, dto: CreateSubmissionDTO) -> SubmissionDTO:
         try:
@@ -68,10 +69,16 @@ class CreateSubmissionUseCase:
                 group_assignment.ensure_language_allowed(language=submission.language)
                 group_assignment.ensure_not_expired(now=submission.created_at)
                 domain_result = await uow.submission_repo.add(submission=submission)
-
-            ...  # Добавить запрос к checking_service (либо через очереди)
+                await uow.track(entity=domain_result)
+                await uow.commit()
 
             return SubmissionMapper.to_dto(domain=domain_result)
+
+        except DomainError as exc:
+            raise ValidationError(
+                message=exc.message,
+                details=exc.details,
+            ) from exc
 
         except ApplicationError:
             raise

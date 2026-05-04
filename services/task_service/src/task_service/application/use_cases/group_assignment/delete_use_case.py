@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from task_service.domain.errors import DomainError
 from task_service.application.dto.group_assignment import GroupAssignmentDTO
 from task_service.application.dto.mappers import GroupAssignmentMapper
 from task_service.application.ports import UnitOfWork
@@ -7,6 +8,7 @@ from task_service.application.errors import (
     ApplicationError,
     NotFoundError,
     InternalError,
+    ValidationError,
 )
 
 
@@ -31,6 +33,12 @@ class DeleteGroupAssignmentUseCase:
                 await uow.commit()
 
             return GroupAssignmentMapper.to_dto(domain=domain_result)
+
+        except DomainError as exc:
+            raise ValidationError(
+                message=exc.message,
+                details=exc.details,
+            ) from exc
 
         except ApplicationError:
             raise

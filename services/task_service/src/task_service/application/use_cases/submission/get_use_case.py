@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from task_service.domain.errors import DomainError
 from task_service.application.dto.submission import SubmissionDTO
 from task_service.application.dto.mappers import SubmissionMapper
 from task_service.application.ports import UnitOfWork
@@ -7,6 +8,7 @@ from task_service.application.errors import (
     ApplicationError,
     NotFoundError,
     InternalError,
+    ValidationError,
 )
 
 
@@ -29,6 +31,12 @@ class GetSubmissionUseCase:
                 )
 
             return SubmissionMapper.to_dto(domain=domain_result)
+
+        except DomainError as exc:
+            raise ValidationError(
+                message=exc.message,
+                details=exc.details,
+            ) from exc
 
         except ApplicationError:
             raise

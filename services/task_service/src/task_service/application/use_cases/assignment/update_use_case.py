@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from task_service.domain.errors import DomainError
 from task_service.application.dto.assignment import AssignmentDTO, UpdateAssignmentDTO
 from task_service.application.dto.mappers import AssignmentMapper
 from task_service.application.ports import UnitOfWork
@@ -7,6 +8,7 @@ from task_service.application.errors import (
     ApplicationError,
     NotFoundError,
     InternalError,
+    ValidationError,
 )
 
 
@@ -37,6 +39,12 @@ class UpdateAssignmentUseCase:
                 await uow.commit()
 
             return AssignmentMapper.to_dto(domain=result_domain)
+
+        except DomainError as exc:
+            raise ValidationError(
+                message=exc.message,
+                details=exc.details,
+            ) from exc
 
         except ApplicationError:
             raise

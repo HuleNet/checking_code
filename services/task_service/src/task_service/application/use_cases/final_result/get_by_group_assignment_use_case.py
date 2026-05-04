@@ -1,9 +1,14 @@
 from uuid import UUID
 
+from task_service.domain.errors import DomainError
 from task_service.application.dto.final_result import FinalResultDTO
 from task_service.application.dto.mappers import FinalResultMapper
 from task_service.application.ports import UnitOfWork
-from task_service.application.errors import ApplicationError, InternalError
+from task_service.application.errors import (
+    ApplicationError,
+    InternalError,
+    ValidationError,
+)
 
 
 class GetFinalResultsByGroupAssignmentUseCase:
@@ -20,6 +25,12 @@ class GetFinalResultsByGroupAssignmentUseCase:
             return [
                 FinalResultMapper.to_dto(domain=domain) for domain in domain_results
             ]
+
+        except DomainError as exc:
+            raise ValidationError(
+                message=exc.message,
+                details=exc.details,
+            ) from exc
 
         except ApplicationError:
             raise

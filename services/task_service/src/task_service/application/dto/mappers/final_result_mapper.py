@@ -1,28 +1,10 @@
-from uuid import UUID
-
 from task_service.domain.entities import FinalResult
 from task_service.application.dto.final_result import (
     FinalResultDTO,
-    CreateFinalResultDTO,
 )
 
 
 class FinalResultMapper:
-    @staticmethod
-    def to_domain(dto: CreateFinalResultDTO, id: UUID) -> FinalResult:
-        return FinalResult(
-            id=id,
-            group_assignment_id=dto.group_assignment_id,
-            student_id=dto.student_id,
-            submission_id=dto.submission_id,
-            score=dto.score,
-            attempt_number=dto.attempt_number,
-            tests_total=dto.tests_total,
-            tests_passed=dto.tests_passed,
-            plagiarism_score=dto.plagiarism_score,
-            plagiarism_flag=dto.plagiarism_flag,
-        )
-
     @staticmethod
     def to_dto(domain: FinalResult) -> FinalResultDTO:
         return FinalResultDTO(

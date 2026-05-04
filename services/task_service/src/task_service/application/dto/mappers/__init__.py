@@ -5,6 +5,7 @@ from task_service.application.dto.mappers.group_assignment_mapper import (
 )
 from task_service.application.dto.mappers.submission_mapper import SubmissionMapper
 from task_service.application.dto.mappers.final_result_mapper import FinalResultMapper
+from task_service.application.dto.mappers.event_mapper import EventMapper
 
 
 __all__ = (
@@ -13,4 +14,5 @@ __all__ = (
     "GroupAssignmentMapper",
     "SubmissionMapper",
     "FinalResultMapper",
+    "EventMapper",
 )

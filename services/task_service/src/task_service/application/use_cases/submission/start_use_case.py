@@ -6,23 +6,36 @@ from task_service.application.dto.mappers import SubmissionMapper
 from task_service.application.ports import UnitOfWork
 from task_service.application.errors import (
     ApplicationError,
+    NotFoundError,
     InternalError,
     ValidationError,
 )
 
 
-class GetSubmissionsByGroupAssignmentUseCase:
+class StartSubmissionProcessingUseCase:
     def __init__(self, uow: UnitOfWork) -> None:
         self.uow = uow
 
-    async def execute(self, group_assignment_id: UUID) -> list[SubmissionDTO]:
+    async def execute(self, id: UUID) -> SubmissionDTO:
         try:
             async with self.uow as uow:
-                domain_results = await uow.submission_repo.get_by_group_assignment(
-                    group_assignment_id=group_assignment_id
-                )
+                submission = await uow.submission_repo.get(id=id)
 
-            return [SubmissionMapper.to_dto(domain=domain) for domain in domain_results]
+                if submission is None:
+                    raise NotFoundError(
+                        message="Submission not found",
+                        details={
+                            "entity": "submission",
+                            "id": id,
+                        },
+                    )
+
+                submission.start_processing()
+                domain_result = await uow.submission_repo.update(submission=submission)
+                await uow.track(entity=domain_result)
+                await uow.commit()
+
+            return SubmissionMapper.to_dto(domain=domain_result)
 
         except DomainError as exc:
             raise ValidationError(
@@ -35,10 +48,9 @@ class GetSubmissionsByGroupAssignmentUseCase:
 
         except Exception as exc:
             raise InternalError(
-                message="Failed to get Submissions",
+                message="Failed to start Submission processing",
                 details={
                     "entity": "submission",
-                    "group_assignment_id": group_assignment_id,
-                    "is_page": False,
+                    "id": id,
                 },
             ) from exc

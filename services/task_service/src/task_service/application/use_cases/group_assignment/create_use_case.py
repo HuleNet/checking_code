@@ -1,12 +1,17 @@
 from uuid import uuid4
 
+from task_service.domain.errors import DomainError
 from task_service.application.dto.group_assignment import (
     GroupAssignmentDTO,
     CreateGroupAssignmentDTO,
 )
 from task_service.application.dto.mappers import GroupAssignmentMapper
 from task_service.application.ports import UnitOfWork
-from task_service.application.errors import ApplicationError, InternalError
+from task_service.application.errors import (
+    ApplicationError,
+    InternalError,
+    ValidationError,
+)
 
 
 class CreateGroupAssignmentUseCase:
@@ -23,6 +28,12 @@ class CreateGroupAssignmentUseCase:
                 await uow.commit()
 
             return GroupAssignmentMapper.to_dto(domain=domain_result)
+
+        except DomainError as exc:
+            raise ValidationError(
+                message=exc.message,
+                details=exc.details,
+            ) from exc
 
         except ApplicationError:
             raise

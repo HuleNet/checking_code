@@ -1,7 +1,8 @@
-from uuid import UUID
-
 from task_service.domain.errors import DomainError
-from task_service.application.dto.submission import SubmissionDTO
+from task_service.application.dto.submission import (
+    SubmissionDTO,
+    ApplySubmissionResultDTO,
+)
 from task_service.application.dto.mappers import SubmissionMapper
 from task_service.application.ports import UnitOfWork
 from task_service.application.errors import (
@@ -12,27 +13,32 @@ from task_service.application.errors import (
 )
 
 
-class DeleteSubmissionUseCase:
+class ApplySubmissionResultUseCase:
     def __init__(self, uow: UnitOfWork) -> None:
         self.uow = uow
 
-    async def execute(self, id: UUID) -> SubmissionDTO:
+    async def execute(self, dto: ApplySubmissionResultDTO) -> SubmissionDTO:
         try:
             async with self.uow as uow:
-                domain_result = await uow.submission_repo.delete(id=id)
+                submission = await uow.submission_repo.get(id=dto.id)
 
-                if domain_result is None:
+                if submission is None:
                     raise NotFoundError(
                         message="Submission not found",
                         details={
                             "entity": "submission",
-                            "id": id,
+                            "id": dto.id,
                         },
                     )
 
+                submission.apply_result(
+                    tests_passed=dto.tests_passed, tests_total=dto.tests_total
+                )
+                result_domain = await uow.submission_repo.update(submission=submission)
+                await uow.track(entity=result_domain)
                 await uow.commit()
 
-            return SubmissionMapper.to_dto(domain=domain_result)
+            return SubmissionMapper.to_dto(domain=result_domain)
 
         except DomainError as exc:
             raise ValidationError(
@@ -45,9 +51,9 @@ class DeleteSubmissionUseCase:
 
         except Exception as exc:
             raise InternalError(
-                message="Failed to delete Submission",
+                message="Failed to apply Submission result",
                 details={
                     "entity": "submission",
-                    "id": id,
+                    "id": dto.id,
                 },
             ) from exc
