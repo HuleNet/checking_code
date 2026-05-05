@@ -1,0 +1,32 @@
+from uuid import UUID
+from datetime import datetime
+
+from sqlalchemy import Integer, DateTime, Float, Boolean
+from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.dialects.postgresql import UUID as PG_UUID
+
+from task_service.infrastructure.db.models.base_model import BaseModel
+
+
+class FinalResultORM(BaseModel):
+    __tablename__ = "final_results"
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
+    group_assignment_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), nullable=False, index=True
+    )
+    student_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), nullable=False, index=True
+    )
+    submission_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), nullable=False, index=True
+    )
+    score: Mapped[int] = mapped_column(Integer, nullable=False)
+    attempt_number: Mapped[int] = mapped_column(Integer, nullable=False)
+    tests_total: Mapped[int] = mapped_column(Integer, nullable=False)
+    tests_passed: Mapped[int] = mapped_column(Integer, nullable=False)
+    plagiarism_score: Mapped[float] = mapped_column(Float(precision=3), nullable=False)
+    plagiarism_flag: Mapped[bool] = mapped_column(Boolean, nullable=False)
+    finalized_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
