@@ -1,0 +1,160 @@
+from uuid import UUID
+
+from sqlalchemy import insert, select, delete
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from task_service.domain.entities import GroupAssignment
+from task_service.application.models.pagination import CursorPagination, Page
+from task_service.application.ports.repositories import GroupAssignmentRepository
+from task_service.infrastructure.db.models import GroupAssignmentORM
+from task_service.infrastructure.db.models.mappers import GroupAssignmentMapper
+from task_service.infrastructure.errors import (
+    RepositoryIntegrityError,
+    RepositoryInternalError,
+)
+
+
+class SQLAlchemyGroupAssignmentRepository(GroupAssignmentRepository):
+    def __init__(self, session: AsyncSession) -> None:
+        self.session = session
+        self.model = GroupAssignmentORM
+
+    async def add(self, group_assignment: GroupAssignment) -> GroupAssignment:
+        query = (
+            insert(self.model)
+            .values(**GroupAssignmentMapper.to_dict(domain=group_assignment))
+            .returning(self.model)
+        )
+
+        try:
+            orm_result = await self.session.execute(query)
+
+        except IntegrityError as exc:
+            raise RepositoryIntegrityError(
+                message="GroupAssignment already exists",
+                details={
+                    "entity": "group_assignment",
+                    "operation": "add",
+                    "id": group_assignment.id,
+                },
+            ) from exc
+
+        except SQLAlchemyError as exc:
+            raise RepositoryInternalError(
+                message="Failed to insert GroupAssignment",
+                details={
+                    "entity": "group_assignment",
+                    "operation": "add",
+                    "id": group_assignment.id,
+                },
+            ) from exc
+
+        orm = orm_result.scalar_one()
+        return GroupAssignmentMapper.to_domain(orm=orm)
+
+    async def get(self, id: UUID) -> GroupAssignment | None:
+        query = select(self.model).where(self.model.id == id)
+
+        try:
+            orm_result = await self.session.execute(query)
+
+        except SQLAlchemyError as exc:
+            raise RepositoryInternalError(
+                message="Failed to fetch GroupAssignment",
+                details={
+                    "entity": "group_assignment",
+                    "operation": "get",
+                    "id": id,
+                },
+            ) from exc
+
+        orm = orm_result.scalar_one_or_none()
+
+        if orm is None:
+            return None
+
+        return GroupAssignmentMapper.to_domain(orm=orm)
+
+    async def get_by_group(self, group_id: UUID) -> list[GroupAssignment]:
+        query = select(self.model).where(self.model.group_id == group_id)
+
+        try:
+            orm_results = await self.session.execute(query)
+
+        except SQLAlchemyError as exc:
+            raise RepositoryInternalError(
+                message="Failed to fetch GroupAssignment by group",
+                details={
+                    "entity": "group_assignment",
+                    "operation": "get_by_group",
+                    "group_id": group_id,
+                },
+            ) from exc
+
+        return [
+            GroupAssignmentMapper.to_domain(orm=orm)
+            for orm in orm_results.scalars().all()
+        ]
+
+    async def get_page(
+        self, group_id: UUID, pagination: CursorPagination
+    ) -> Page[GroupAssignment]:
+        query = select(self.model).where(self.model.group_id == group_id)
+
+        if pagination.cursor:
+            query = query.where(self.model.id > pagination.cursor["id"])
+
+        query = query.order_by(self.model.id).limit(pagination.limit + 1)
+
+        try:
+            orm_results = await self.session.execute(query)
+
+        except SQLAlchemyError as exc:
+            raise RepositoryInternalError(
+                message="Failed to fetch GroupAssignment page",
+                details={
+                    "entity": "group_assignment",
+                    "operation": "get_page",
+                    "group_id": group_id,
+                    "limit": pagination.limit,
+                    "cursor": pagination.cursor,
+                },
+            ) from exc
+
+        orms = orm_results.scalars().all()
+        has_next = len(orms) > pagination.limit
+
+        if has_next:
+            last = orms[-1]
+            next_cursor = {"id": last.id}
+        else:
+            next_cursor = None
+
+        return Page(
+            items=[GroupAssignmentMapper.to_domain(orm=orm) for orm in orms],
+            next_cursor=next_cursor,
+        )
+
+    async def delete(self, id: UUID) -> GroupAssignment | None:
+        query = delete(self.model).where(self.model.id == id).returning(self.model)
+
+        try:
+            orm_result = await self.session.execute(query)
+
+        except SQLAlchemyError as exc:
+            raise RepositoryInternalError(
+                message="Failed to delete GroupAssignment",
+                details={
+                    "entity": "group_assignment",
+                    "operation": "delete",
+                    "id": id,
+                },
+            ) from exc
+
+        orm = orm_result.scalar_one_or_none()
+
+        if orm is None:
+            return None
+
+        return GroupAssignmentMapper.to_domain(orm=orm)
