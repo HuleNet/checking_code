@@ -77,7 +77,7 @@ class SQLAlchemyUnitOfWork(UnitOfWork):
                     "operation": "track",
                 },
             )
-            
+
         pull_events = getattr(entity, "pull_events", None)
 
         if pull_events is None:
@@ -91,7 +91,7 @@ class SQLAlchemyUnitOfWork(UnitOfWork):
         for event in events:
             outbox_message = OutboxMessage(
                 id=event.id,
-                event_type = event.__class__.__name__,
+                event_type=event.__class__.__name__,
                 payload=EventMapper.serialize_event(event=event),
                 occurred_at=event.occurred_at,
             )

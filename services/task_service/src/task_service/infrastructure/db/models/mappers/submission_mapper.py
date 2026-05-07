@@ -11,6 +11,7 @@ class SubmissionMapper:
         return Submission(
             id=orm.id,
             student_id=orm.student_id,
+            assignment_id=orm.assignment_id,
             group_assignment_id=orm.group_assignment_id,
             language=orm.language,
             code=orm.code,
@@ -28,6 +29,7 @@ class SubmissionMapper:
         return {
             "id": domain.id,
             "student_id": domain.student_id,
+            "assignment_id": domain.assignment_id,
             "group_assignment_id": domain.group_assignment_id,
             "language": domain.language,
             "code": domain.code,

@@ -34,6 +34,9 @@ class SubmissionORM(BaseModel):
 
     id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
     student_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False)
+    assignment_id: Mapped[UUID] = mapped_column(
+        PG_UUID(as_uuid=True), nullable=False, index=True
+    )
     group_assignment_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True), nullable=False, index=True
     )

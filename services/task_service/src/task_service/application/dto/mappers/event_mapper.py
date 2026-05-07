@@ -17,6 +17,7 @@ class EventMapper:
             return {
                 "submission_id": str(event.submission_id),
                 "student_id": str(event.student_id),
+                "assignment_id": str(event.assignment_id),
                 "group_assignment_id": str(event.group_assignment_id),
                 "code": event.code,
                 "language": event.language.value,

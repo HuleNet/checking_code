@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     broker_user: str
     broker_password: SecretStr
 
+    checking_service_url: str
+
     max_code_length: int
     max_attempts: int
     penalty_cap: int

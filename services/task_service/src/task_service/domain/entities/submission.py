@@ -20,6 +20,7 @@ from task_service.domain.errors import (
 class Submission:
     id: UUID
     student_id: UUID
+    assignment_id: UUID
     group_assignment_id: UUID
     language: Language
     code: str
@@ -38,6 +39,7 @@ class Submission:
         cls,
         id: UUID,
         student_id: UUID,
+        assignment_id: UUID,
         group_assignment_id: UUID,
         language: Language,
         code: str,
@@ -47,6 +49,7 @@ class Submission:
         submission = cls(
             id=id,
             student_id=student_id,
+            assignment_id=assignment_id,
             group_assignment_id=group_assignment_id,
             language=language,
             code=code,
@@ -57,6 +60,7 @@ class Submission:
             SubmissionCreatedEvent(
                 submission_id=submission.id,
                 student_id=submission.student_id,
+                assignment_id=submission.assignment_id,
                 group_assignment_id=submission.group_assignment_id,
                 code=submission.code,
                 language=submission.language,

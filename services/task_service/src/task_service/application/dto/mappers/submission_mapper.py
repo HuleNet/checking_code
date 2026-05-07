@@ -15,6 +15,7 @@ class SubmissionMapper:
         return Submission.create(
             id=id,
             student_id=dto.student_id,
+            assignment_id=dto.assignment_id,
             group_assignment_id=dto.group_assignment_id,
             language=language,
             code=dto.code,
@@ -27,6 +28,7 @@ class SubmissionMapper:
         return SubmissionDTO(
             id=domain.id,
             student_id=domain.student_id,
+            assignment_id=domain.assignment_id,
             group_assignment_id=domain.group_assignment_id,
             language=domain.language.value,
             code=domain.code,

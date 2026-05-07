@@ -9,6 +9,7 @@ from task_service.domain.events import DomainEvent
 class SubmissionCreatedEvent(DomainEvent):
     submission_id: UUID
     student_id: UUID
+    assignment_id: UUID
     group_assignment_id: UUID
     code: str
     language: Language

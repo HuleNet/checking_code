@@ -7,6 +7,7 @@ from datetime import datetime
 class SubmissionDTO:
     id: UUID
     student_id: UUID
+    assignment_id: UUID
     group_assignment_id: UUID
     language: str
     code: str
@@ -22,6 +23,7 @@ class SubmissionDTO:
 @dataclass(frozen=True)
 class CreateSubmissionDTO:
     student_id: UUID
+    assignment_id: UUID
     group_assignment_id: UUID
     language: str
     code: str

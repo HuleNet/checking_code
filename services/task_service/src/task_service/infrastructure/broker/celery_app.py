@@ -18,29 +18,29 @@ celery_app.conf.update(
     task_reject_on_worker_lost=True,
     worker_prefetch_multiplier=1,
     task_routes={
-        "SubmissionCreatedEvent": {
-            "queue": "submission_queue",
+        "process_submission": {
+            "queue": "submission.check",
         },
         "finalize_group_assignment": {
-            "queue": "finalization_queue",
+            "queue": "group_assignment.finalize",
         },
         "scan_expired_group_assignments": {
-            "queue": "finalization_queue",
+            "queue": "group_assignment.finalize",
         },
         "publish_outbox_events": {
-            "queue": "publisher_queue",
+            "queue": "outbox.publish",
         },
     },
     beat_schedule={
-    "publish-outbox-events": {
-        "task": "publish_outbox_events",
-        "schedule": 5.0,
+        "publish-outbox-events": {
+            "task": "publish_outbox_events",
+            "schedule": 5.0,
+        },
+        "finalize-expired-group-assignments": {
+            "task": "scan_expired_group_assignments",
+            "schedule": 30.0,
+        },
     },
-    "finalize-expired-group-assignments": {
-        "task": "scan_expired_group_assignments",
-        "schedule": 30.0,
-    },
-}
 )
 celery_app.autodiscover_tasks(
     [
