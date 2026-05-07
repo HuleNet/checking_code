@@ -79,7 +79,7 @@ class Submission:
                 details={
                     "entity": "submission",
                     "id": self.id,
-                    "status": self.status,
+                    "status": self.status.value,
                 },
             )
 
@@ -97,7 +97,7 @@ class Submission:
                 details={
                     "entity": "submission",
                     "id": self.id,
-                    "status": self.status,
+                    "status": self.status.value,
                 },
             )
 
@@ -142,7 +142,7 @@ class Submission:
                 details={
                     "entity": "submission",
                     "id": self.id,
-                    "status": self.status,
+                    "status": self.status.value,
                 },
             )
 

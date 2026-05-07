@@ -13,7 +13,11 @@ class Settings(BaseSettings):
     db_password: SecretStr
     db_echo: bool
 
-    batch_size: int
+    broker_host: str
+    broker_port: int
+    broker_user: str
+    broker_password: SecretStr
+
     max_code_length: int
     max_attempts: int
     penalty_cap: int
@@ -29,6 +33,13 @@ class Settings(BaseSettings):
         return (
             f"postgresql+asyncpg://{self.db_user}:{self.db_password.get_secret_value()}"
             f"@{self.db_host}:{self.db_port}/{self.db_name}"
+        )
+
+    @property
+    def broker_url(self) -> str:
+        return (
+            f"amqp://{self.broker_user}:{self.broker_password.get_secret_value()}"
+            f"@{self.broker_host}:{self.broker_port}//"
         )
 
 

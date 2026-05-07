@@ -77,8 +77,13 @@ class SQLAlchemyUnitOfWork(UnitOfWork):
                     "operation": "track",
                 },
             )
+            
+        pull_events = getattr(entity, "pull_events", None)
 
-        events: list[DomainEvent] = getattr(entity, "events", [])
+        if pull_events is None:
+            return
+
+        events: list[DomainEvent] = pull_events()
 
         if not events:
             return
@@ -86,10 +91,9 @@ class SQLAlchemyUnitOfWork(UnitOfWork):
         for event in events:
             outbox_message = OutboxMessage(
                 id=event.id,
-                event_type=event.__class__.__name__,
+                event_type = event.__class__.__name__,
                 payload=EventMapper.serialize_event(event=event),
                 occurred_at=event.occurred_at,
             )
-            await self.outbox_repo.add(message=outbox_message)
 
-        entity.clear_events()
+            await self.outbox_repo.add(message=outbox_message)
