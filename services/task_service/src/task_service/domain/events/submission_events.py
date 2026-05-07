@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from uuid import UUID
 
-from task_service.domain.enums import Language
+from task_service.domain.value_objects import Language
 from task_service.domain.events import DomainEvent
 
 

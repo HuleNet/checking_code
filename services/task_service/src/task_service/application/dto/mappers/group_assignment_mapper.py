@@ -35,5 +35,6 @@ class GroupAssignmentMapper:
                 map(lambda language: language.value, domain.allowed_languages)
             ),
             deadline=domain.deadline,
-            created_at=domain.created_at,
+            status=domain.status.value,
+            finalized_at=domain.finalized_at,
         )

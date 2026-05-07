@@ -1,4 +1,4 @@
-from task_service.domain.enums import Language, SubmissionStatus
+from task_service.domain.value_objects import Language
 from task_service.application.errors import ValidationError
 
 
@@ -14,19 +14,5 @@ class DomainEnumsMapper:
                 details={
                     "language": language,
                     "allowed": Language.values(),
-                },
-            )
-
-    @staticmethod
-    def map_submission_status(submission_status: str) -> SubmissionStatus:
-        try:
-            return SubmissionStatus(submission_status)
-
-        except ValueError:
-            raise ValidationError(
-                message="Unsupported submission status",
-                details={
-                    "submission_status": submission_status,
-                    "allowed": SubmissionStatus.values(),
                 },
             )

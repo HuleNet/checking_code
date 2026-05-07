@@ -1,9 +1,11 @@
 from uuid import UUID
+from datetime import datetime, timezone
 
-from sqlalchemy import insert, select, delete
+from sqlalchemy import insert, select, update, delete
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from task_service.domain.value_objects import GroupAssignmentStatus
 from task_service.domain.entities import GroupAssignment
 from task_service.application.models.pagination import CursorPagination, Page
 from task_service.application.ports.repositories import GroupAssignmentRepository
@@ -135,6 +137,87 @@ class SQLAlchemyGroupAssignmentRepository(GroupAssignmentRepository):
             items=[GroupAssignmentMapper.to_domain(orm=orm) for orm in orms],
             next_cursor=next_cursor,
         )
+
+    async def claim_expired(self, now: datetime, limit: int) -> list[GroupAssignment]:
+        subquery = (
+            select(self.model)
+            .where(
+                self.model.deadline <= now,
+                self.model.status == GroupAssignmentStatus.ACTIVE,
+            )
+            .order_by(self.model.deadline)
+            .limit(limit)
+        )
+        query = (
+            update(self.model)
+            .where(self.model.id.in_(subquery))
+            .values(
+                status=GroupAssignmentStatus.FINALIZING,
+            )
+            .returning(self.model)
+        )
+
+        try:
+            orm_results = await self.session.execute(query)
+
+        except SQLAlchemyError as exc:
+            raise RepositoryInternalError(
+                message="Failed to claim expired GroupAssignments",
+                details={
+                    "entity": "group_assignment",
+                    "operation": "claim_expired",
+                    "limit": limit,
+                },
+            ) from exc
+
+        orms = orm_results.scalars().all()
+
+        return [GroupAssignmentMapper.to_domain(orm=orm) for orm in orms]
+
+    async def finalize(self, id: UUID) -> None:
+        query = (
+            update(self.model)
+            .where(self.model.id == id)
+            .values(
+                status=GroupAssignmentStatus.FINALIZED,
+                finalized_at=datetime.now(timezone.utc),
+            )
+        )
+
+        try:
+            await self.session.execute(query)
+
+        except SQLAlchemyError as exc:
+            raise RepositoryInternalError(
+                message="Failed to finalize GroupAssignment",
+                details={
+                    "entity": "group_assignment",
+                    "operation": "finalize",
+                    "id": id,
+                },
+            ) from exc
+
+    async def reset_finalization(self, id: UUID) -> None:
+        query = (
+            update(self.model)
+            .where(self.model.id == id)
+            .values(
+                status=GroupAssignmentStatus.ACTIVE,
+            )
+        )
+
+        try:
+            await self.session.execute(query)
+
+        except SQLAlchemyError as exc:
+            raise RepositoryInternalError(
+                message="Failed to reset GroupAssignment finalization",
+                details={
+                    "entity": "reset_finalization",
+                    "operation": "finalize",
+                    "id": id,
+                },
+            ) from exc
 
     async def delete(self, id: UUID) -> GroupAssignment | None:
         query = delete(self.model).where(self.model.id == id).returning(self.model)

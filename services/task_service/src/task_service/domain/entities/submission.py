@@ -2,8 +2,7 @@ from dataclasses import dataclass, field
 from uuid import UUID
 from datetime import datetime, timezone
 
-from task_service.domain.enums import SubmissionStatus, Language
-from task_service.domain.value_objects import CodeHash
+from task_service.domain.value_objects import SubmissionStatus, Language, CodeHash
 from task_service.domain.events import (
     DomainEvent,
     SubmissionCreatedEvent,

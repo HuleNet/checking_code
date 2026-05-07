@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     db_password: SecretStr
     db_echo: bool
 
+    batch_size: int
     max_code_length: int
     max_attempts: int
     penalty_cap: int

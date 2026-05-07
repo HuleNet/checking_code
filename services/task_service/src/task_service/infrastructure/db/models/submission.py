@@ -5,7 +5,7 @@ from sqlalchemy import String, Integer, Enum, DateTime, UniqueConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
-from task_service.domain.enums import Language, SubmissionStatus
+from task_service.domain.value_objects import Language, SubmissionStatus
 from task_service.infrastructure.db.models.base_model import BaseModel, MAX_CODE_LENGTH
 
 
@@ -25,7 +25,7 @@ class SubmissionORM(BaseModel):
             name="uq_submission_attempt",
         ),
         Index(
-            "ix_submission_student_assignment_attempt",
+            "idx_submission_student_assignment_attempt",
             "student_id",
             "group_assignment_id",
             "attempt_number",

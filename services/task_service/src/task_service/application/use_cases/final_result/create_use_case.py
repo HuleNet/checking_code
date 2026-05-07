@@ -1,7 +1,7 @@
 from uuid import uuid4, UUID
 from typing import Any
 
-from task_service.domain.enums import SubmissionStatus
+from task_service.domain.value_objects import SubmissionStatus
 from task_service.domain.errors import DomainError
 from task_service.domain.entities import FinalResult
 from task_service.domain.services import ScoringService

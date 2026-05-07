@@ -13,7 +13,8 @@ class GroupAssignmentMapper:
             assignment_id=orm.assignment_id,
             allowed_languages=set(orm.allowed_languages),
             deadline=orm.deadline,
-            created_at=orm.created_at,
+            status=orm.status,
+            finalized_at=orm.finalized_at,
         )
 
     @staticmethod
@@ -24,5 +25,6 @@ class GroupAssignmentMapper:
             "assignment_id": domain.assignment_id,
             "allowed_languages": list(domain.allowed_languages),
             "deadline": domain.deadline,
-            "created_at": domain.created_at,
+            "status": domain.status,
+            "finalized_at": domain.finalized_at,
         }

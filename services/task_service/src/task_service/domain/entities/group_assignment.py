@@ -1,25 +1,36 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from uuid import UUID
 from datetime import datetime, timezone
 
-from task_service.domain.enums import Language
-from task_service.domain.errors import (
-    InvariantViolationError,
-    BusinessRuleViolationError,
-)
+from task_service.domain.value_objects import Language, GroupAssignmentStatus
+from task_service.domain.errors import BusinessRuleViolationError
 
 
-@dataclass(frozen=True)
+@dataclass
 class GroupAssignment:
     id: UUID
     group_id: UUID
     assignment_id: UUID
     allowed_languages: set[Language]
     deadline: datetime
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    status: GroupAssignmentStatus = GroupAssignmentStatus.ACTIVE
+    finalized_at: datetime | None = None
 
-    def __post_init__(self) -> None:
-        self._check_invariants()
+    def start_finalizing(self) -> None:
+        if self.status != GroupAssignmentStatus.ACTIVE:
+            return
+
+        self.status = GroupAssignmentStatus.FINALIZING
+
+    def finalize(self) -> None:
+        if self.status != GroupAssignmentStatus.FINALIZING:
+            return
+
+        self.status = GroupAssignmentStatus.FINALIZED
+        self.finalized_at = datetime.now(timezone.utc)
+
+    def reset_finalization(self) -> None:
+        self.status = GroupAssignmentStatus.ACTIVE
 
     def ensure_not_expired(self, now: datetime) -> None:
         if now > self.deadline:
@@ -44,16 +55,5 @@ class GroupAssignment:
                     "allowed_languages": list(
                         map(lambda language: language.value, self.allowed_languages)
                     ),
-                },
-            )
-
-    def _check_invariants(self) -> None:
-        if self.deadline <= self.created_at:
-            raise InvariantViolationError(
-                message="Deadline must be later than creation timestamp",
-                details={
-                    "entity": "group_assignment",
-                    "deadline": self.deadline,
-                    "created_at": self.created_at,
                 },
             )

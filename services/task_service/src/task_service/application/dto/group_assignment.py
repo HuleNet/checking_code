@@ -10,7 +10,8 @@ class GroupAssignmentDTO:
     assignment_id: UUID
     allowed_languages: set[str]
     deadline: datetime
-    created_at: datetime
+    status: str
+    finalized_at: datetime | None
 
 
 @dataclass(frozen=True)

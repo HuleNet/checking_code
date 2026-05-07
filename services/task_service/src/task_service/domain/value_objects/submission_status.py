@@ -1,4 +1,4 @@
-from task_service.domain.enums import BaseEnum
+from task_service.domain.value_objects import BaseEnum
 
 
 class SubmissionStatus(BaseEnum):
