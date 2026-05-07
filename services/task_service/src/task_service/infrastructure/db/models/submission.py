@@ -1,7 +1,7 @@
 from uuid import UUID
 from datetime import datetime
 
-from sqlalchemy import String, Integer, Enum, DateTime
+from sqlalchemy import String, Integer, Enum, DateTime, UniqueConstraint, Index
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
@@ -12,10 +12,28 @@ from task_service.infrastructure.db.models.base_model import BaseModel, MAX_CODE
 class SubmissionORM(BaseModel):
     __tablename__ = "submissions"
 
-    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
-    student_id: Mapped[UUID] = mapped_column(
-        PG_UUID(as_uuid=True), nullable=False, index=True
+    __table_args__ = (
+        UniqueConstraint(
+            "student_id",
+            "code_hash",
+            name="uq_submission_student_code_hash",
+        ),
+        UniqueConstraint(
+            "student_id",
+            "group_assignment_id",
+            "attempt_number",
+            name="uq_submission_attempt",
+        ),
+        Index(
+            "ix_submission_student_assignment_attempt",
+            "student_id",
+            "group_assignment_id",
+            "attempt_number",
+        ),
     )
+
+    id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
+    student_id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), nullable=False)
     group_assignment_id: Mapped[UUID] = mapped_column(
         PG_UUID(as_uuid=True), nullable=False, index=True
     )

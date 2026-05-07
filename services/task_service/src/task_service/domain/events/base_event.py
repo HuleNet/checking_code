@@ -5,5 +5,5 @@ from datetime import datetime, timezone
 
 @dataclass(frozen=True, kw_only=True)
 class DomainEvent:
-    event_id: UUID = field(default_factory=uuid4)
+    id: UUID = field(default_factory=uuid4)
     occurred_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))

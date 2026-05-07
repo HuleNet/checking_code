@@ -38,6 +38,7 @@ class CreateSubmissionUseCase:
                 code_hash = CodeHash.from_code(code=dto.code)
                 attempt_number = await uow.submission_repo.get_attempt_number_and_check(
                     student_id=dto.student_id,
+                    group_assignment_id=dto.group_assignment_id,
                     code_hash=code_hash.value,
                     max_attempts=self.max_attempts,
                 )

@@ -48,7 +48,7 @@ class SQLAlchemyOutboxRepository(OutboxRepository):
             ) from exc
 
     async def get_unprocessed(self, limit: int) -> list[OutboxMessage]:
-        query = select(self.model).where(self.model.processed == False).limit(limit)
+        query = select(self.model).where(self.model.processed.is_(False)).limit(limit)
 
         try:
             orm_results = await self.session.execute(query)

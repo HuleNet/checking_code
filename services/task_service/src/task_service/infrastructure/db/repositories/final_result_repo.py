@@ -131,8 +131,8 @@ class SQLAlchemyFinalResultRepository(FinalResultRepository):
         has_next = len(orms) > pagination.limit
 
         if has_next:
-            last = orms[-1]
-            next_cursor = {"id": last.id}
+            next_item = orms[pagination.limit]
+            next_cursor = {"id": next_item.id}
         else:
             next_cursor = None
 
