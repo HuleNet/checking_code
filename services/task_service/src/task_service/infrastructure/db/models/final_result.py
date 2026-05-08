@@ -11,10 +11,12 @@ from task_service.infrastructure.db.models.base_model import BaseModel
 class FinalResultORM(BaseModel):
     __tablename__ = "final_results"
 
-    __table_args__ = UniqueConstraint(
-        "group_assignment_id",
-        "student_id",
-        name="uq_final_result_group_assignment_student",
+    __table_args__ = (
+        UniqueConstraint(
+            "group_assignment_id",
+            "student_id",
+            name="uq_final_result_group_assignment_student",
+        ),
     )
 
     id: Mapped[UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
