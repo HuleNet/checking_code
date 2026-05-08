@@ -1,5 +1,5 @@
 from task_service.application.use_cases.assignment.create_use_case import (
-    CreateAssignmentDTO,
+    CreateAssignmentUseCase,
 )
 from task_service.application.use_cases.assignment.get_use_case import (
     GetAssignmentUseCase,
@@ -13,7 +13,7 @@ from task_service.application.use_cases.assignment.delete_use_case import (
 
 
 __all__ = (
-    "CreateAssignmentDTO",
+    "CreateAssignmentUseCase",
     "GetAssignmentUseCase",
     "UpdateAssignmentUseCase",
     "DeleteAssignmentUseCase",

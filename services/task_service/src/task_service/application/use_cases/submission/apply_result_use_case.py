@@ -1,8 +1,10 @@
+from task_service.domain.value_objects import SubmissionStatus
 from task_service.domain.errors import DomainError
 from task_service.application.dto.submission import (
     SubmissionDTO,
     ApplySubmissionResultDTO,
 )
+
 from task_service.application.dto.mappers import SubmissionMapper
 from task_service.application.ports import UnitOfWork
 from task_service.application.errors import (
@@ -30,6 +32,9 @@ class ApplySubmissionResultUseCase:
                             "id": dto.id,
                         },
                     )
+
+                if submission.status != SubmissionStatus.PENDING:
+                    return SubmissionMapper.to_dto(domain=submission)
 
                 submission.apply_result(
                     tests_passed=dto.tests_passed, tests_total=dto.tests_total

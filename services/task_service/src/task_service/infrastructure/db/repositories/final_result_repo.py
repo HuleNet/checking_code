@@ -1,8 +1,9 @@
 from uuid import UUID
 
-from sqlalchemy import insert, select, delete
+from sqlalchemy import select, delete
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.dialects.postgresql import insert
 
 from task_service.domain.entities import FinalResult
 from task_service.application.models.pagination import CursorPagination, Page
@@ -29,13 +30,26 @@ class SQLAlchemyFinalResultRepository(FinalResultRepository):
             for final_result in final_results
         ]
         query = insert(self.model).values(values)
+        query = query.on_conflict_do_update(
+            constraint="uq_final_result_group_assignment_student",
+            set_={
+                "submission_id": query.excluded.submission_id,
+                "score": query.excluded.score,
+                "attempt_number": query.excluded.attempt_number,
+                "tests_total": query.excluded.tests_total,
+                "tests_passed": query.excluded.tests_passed,
+                "plagiarism_score": query.excluded.plagiarism_score,
+                "plagiarism_flag": query.excluded.plagiarism_flag,
+                "finalized_at": query.excluded.finalized_at,
+            },
+        )
 
         try:
             await self.session.execute(query)
 
         except IntegrityError as exc:
             raise RepositoryIntegrityError(
-                message="Some of FinalResults already exist",
+                message="Failed to upsert FinalResults",
                 details={
                     "entity": "final_result",
                     "operation": "add_many",
@@ -137,7 +151,9 @@ class SQLAlchemyFinalResultRepository(FinalResultRepository):
             next_cursor = None
 
         return Page(
-            items=[FinalResultMapper.to_domain(orm=orm) for orm in orms],
+            items=[
+                FinalResultMapper.to_domain(orm=orm) for orm in orms[: pagination.limit]
+            ],
             next_cursor=next_cursor,
         )
 

@@ -217,7 +217,9 @@ class SQLAlchemySubmissionRepository(SubmissionRepository):
             next_cursor = None
 
         return Page(
-            items=[SubmissionMapper.to_domain(orm=orm) for orm in orms],
+            items=[
+                SubmissionMapper.to_domain(orm=orm) for orm in orms[: pagination.limit]
+            ],
             next_cursor=next_cursor,
         )
 

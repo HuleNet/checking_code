@@ -50,7 +50,10 @@ class CreateFinalResultsUseCase:
                         best_by_student[submission.student_id] = submission
                         continue
 
-                    if (
+                    if submission.tests_passed > current.tests_passed:
+                        best_by_student[submission.student_id] = submission
+
+                    elif (
                         submission.tests_passed == current.tests_passed
                         and submission.created_at < current.created_at
                     ):

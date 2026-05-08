@@ -134,7 +134,10 @@ class SQLAlchemyGroupAssignmentRepository(GroupAssignmentRepository):
             next_cursor = None
 
         return Page(
-            items=[GroupAssignmentMapper.to_domain(orm=orm) for orm in orms],
+            items=[
+                GroupAssignmentMapper.to_domain(orm=orm)
+                for orm in orms[: pagination.limit]
+            ],
             next_cursor=next_cursor,
         )
 
@@ -145,7 +148,7 @@ class SQLAlchemyGroupAssignmentRepository(GroupAssignmentRepository):
                 self.model.deadline <= now,
                 self.model.status == GroupAssignmentStatus.ACTIVE,
             )
-            .order_by(self.model.deadline)
+            .with_for_update(skip_locked=True)
             .limit(limit)
         )
         query = (
@@ -177,7 +180,10 @@ class SQLAlchemyGroupAssignmentRepository(GroupAssignmentRepository):
     async def finalize(self, id: UUID) -> None:
         query = (
             update(self.model)
-            .where(self.model.id == id)
+            .where(
+                self.model.id == id,
+                self.model.status == GroupAssignmentStatus.FINALIZING,
+            )
             .values(
                 status=GroupAssignmentStatus.FINALIZED,
                 finalized_at=datetime.now(timezone.utc),

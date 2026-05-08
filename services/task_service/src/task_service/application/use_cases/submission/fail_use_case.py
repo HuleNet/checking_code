@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from task_service.domain.value_objects import SubmissionStatus
 from task_service.domain.errors import DomainError
 from task_service.application.dto.submission import SubmissionDTO
 from task_service.application.dto.mappers import SubmissionMapper
@@ -29,6 +30,9 @@ class FailSubmissionUseCase:
                             "id": id,
                         },
                     )
+
+                if submission.status != SubmissionStatus.PENDING:
+                    return SubmissionMapper.to_dto(domain=submission)
 
                 submission.fail()
                 domain_result = await uow.submission_repo.update(submission=submission)
