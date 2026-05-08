@@ -4,6 +4,9 @@ from task_service.application.use_cases.submission.create_use_case import (
 from task_service.application.use_cases.submission.start_use_case import (
     StartSubmissionProcessingUseCase,
 )
+from task_service.application.use_cases.submission.set_evaluation_use_case import (
+    SetSubmissionEvaluationUseCase,
+)
 from task_service.application.use_cases.submission.apply_result_use_case import (
     ApplySubmissionResultUseCase,
 )
@@ -27,6 +30,7 @@ from task_service.application.use_cases.submission.delete_use_case import (
 __all__ = (
     "CreateSubmissionUseCase",
     "StartSubmissionProcessingUseCase",
+    "SetSubmissionEvaluationUseCase",
     "ApplySubmissionResultUseCase",
     "FailSubmissionUseCase",
     "GetSubmissionUseCase",

@@ -20,6 +20,7 @@ class SubmissionMapper:
             status=orm.status,
             tests_passed=orm.tests_passed,
             tests_total=orm.tests_total,
+            evaluation_id=orm.evaluation_id,
             checked_at=orm.checked_at,
             created_at=orm.created_at,
         )
@@ -38,6 +39,7 @@ class SubmissionMapper:
             "status": domain.status,
             "tests_passed": domain.tests_passed,
             "tests_total": domain.tests_total,
+            "evaluation_id": domain.evaluation_id,
             "checked_at": domain.checked_at,
             "created_at": domain.created_at,
         }

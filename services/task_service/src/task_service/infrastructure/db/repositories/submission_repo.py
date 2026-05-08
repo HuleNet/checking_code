@@ -231,6 +231,7 @@ class SQLAlchemySubmissionRepository(SubmissionRepository):
                 status=submission.status,
                 tests_total=submission.tests_total,
                 tests_passed=submission.tests_passed,
+                evaluation_id=submission.evaluation_id,
                 checked_at=submission.checked_at,
             )
             .returning(self.model)

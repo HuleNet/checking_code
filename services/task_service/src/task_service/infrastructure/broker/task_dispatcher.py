@@ -23,6 +23,18 @@ class CeleryTaskDispatcher(TaskDispatcher):
             },
         )
 
+    async def poll_submission_result(
+        self, submission_id: UUID, evaluation_id: UUID, countdown: int = 5
+    ):
+        self.celery_app.send_task(
+            "poll_submission_result",
+            kwargs={
+                "submission_id": str(submission_id),
+                "evaluation_id": str(evaluation_id),
+            },
+            countdown=countdown,
+        )
+
     async def finalize_group_assignment(
         self,
         group_assignment_id: UUID,

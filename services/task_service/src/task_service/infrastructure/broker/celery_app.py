@@ -21,6 +21,7 @@ celery_app.conf.update(
         "process_submission": {
             "queue": "submission.check",
         },
+        "poll_submission_result": {"queue": "submission.check"},
         "finalize_group_assignment": {
             "queue": "group_assignment.finalize",
         },
@@ -44,6 +45,6 @@ celery_app.conf.update(
 )
 celery_app.autodiscover_tasks(
     [
-        "task_service.infrastructure.broker.tasks",
+        "task_service.presentation.tasks",
     ]
 )

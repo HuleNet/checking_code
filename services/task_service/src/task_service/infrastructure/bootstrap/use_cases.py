@@ -21,6 +21,7 @@ from task_service.application.use_cases.submission import (
     GetSubmissionPageUseCase,
     DeleteSubmissionUseCase,
     StartSubmissionProcessingUseCase,
+    SetSubmissionEvaluationUseCase,
     ApplySubmissionResultUseCase,
     FailSubmissionUseCase,
 )
@@ -34,6 +35,7 @@ from task_service.application.use_cases.final_result import (
 from task_service.application.use_cases.workflows import (
     PreviewRunUseCase,
     ProcessSubmissionUseCase,
+    PollSubmissionResultUseCase,
     FinalizeGroupAssignmentUseCase,
     ScanExpiredGroupAssignmentsUseCase,
     PublishOutboxEventsUseCase,
@@ -123,6 +125,10 @@ class UseCases:
         return StartSubmissionProcessingUseCase(uow=self.uow_factory())
 
     @property
+    def set_submission_evaluation(self) -> SetSubmissionEvaluationUseCase:
+        return SetSubmissionEvaluationUseCase(uow=self.uow_factory())
+
+    @property
     def apply_submission_result(self) -> ApplySubmissionResultUseCase:
         return ApplySubmissionResultUseCase(uow=self.uow_factory())
 
@@ -162,14 +168,25 @@ class UseCases:
     def process_submission(self) -> ProcessSubmissionUseCase:
         return ProcessSubmissionUseCase(
             checking_service=self.checking_service,
+            task_dispatcher=self.task_dispatcher,
             get_submission=self.get_submission,
             start_submission_processing=self.start_submission,
+            set_submission_evaluation=self.set_submission_evaluation,
+            fail_submission=self.fail_submission,
+        )
+
+    @property
+    def poll_submission_result(self) -> PollSubmissionResultUseCase:
+        return PollSubmissionResultUseCase(
+            checking_service=self.checking_service,
+            task_dispatcher=self.task_dispatcher,
+            get_submission=self.get_submission,
             apply_submission_result=self.apply_submission_result,
             fail_submission=self.fail_submission,
         )
 
     @property
-    def finalized_group_assignment(self) -> FinalizeGroupAssignmentUseCase:
+    def finalize_group_assignment(self) -> FinalizeGroupAssignmentUseCase:
         return FinalizeGroupAssignmentUseCase(
             uow=self.uow_factory(), create_final_results=self.create_final_results
         )

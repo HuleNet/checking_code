@@ -53,6 +53,9 @@ class SubmissionORM(BaseModel):
     )
     tests_passed: Mapped[int | None] = mapped_column(Integer, nullable=True)
     tests_total: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    evaluation_id: Mapped[UUID | None] = mapped_column(
+        PG_UUID(as_uuid=True), nullable=True, unique=True, index=True
+    )
     checked_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )

@@ -37,6 +37,7 @@ class SubmissionMapper:
             status=domain.status.value,
             tests_total=domain.tests_total,
             tests_passed=domain.tests_passed,
+            evaluation_id=domain.evaluation_id,
             checked_at=domain.checked_at,
             created_at=domain.created_at,
         )
