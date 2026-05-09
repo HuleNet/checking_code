@@ -5,6 +5,7 @@ from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from task_service.domain.entities import Assignment
+from task_service.application.models.pagination import CursorPagination, Page
 from task_service.application.ports.repositories import AssignmentRepository
 from task_service.infrastructure.db.models import AssignmentORM
 from task_service.infrastructure.db.models.mappers import AssignmentMapper
@@ -74,6 +75,44 @@ class SQLAlchemyAssignmentRepository(AssignmentRepository):
             return None
 
         return AssignmentMapper.to_domain(orm=orm)
+
+    async def get_page(self, pagination: CursorPagination) -> Page[Assignment]:
+        query = select(self.model)
+
+        if pagination.cursor:
+            query = query.where(self.model.id > pagination.cursor["id"])
+
+        query = query.order_by(self.model.id).limit(pagination.limit + 1)
+
+        try:
+            orm_results = await self.session.execute(query)
+
+        except SQLAlchemyError as exc:
+            raise RepositoryInternalError(
+                message="Failed to fetch Assignment page",
+                details={
+                    "entity": "assignment",
+                    "operation": "get_page",
+                    "limit": pagination.limit,
+                    "cursor": pagination.cursor,
+                },
+            ) from exc
+
+        orms = orm_results.scalars().all()
+        has_next = len(orms) > pagination.limit
+
+        if has_next:
+            next_item = orms[pagination.limit]
+            next_cursor = {"id": next_item.id}
+        else:
+            next_cursor = None
+
+        return Page(
+            items=[
+                AssignmentMapper.to_domain(orm=orm) for orm in orms[: pagination.limit]
+            ],
+            next_cursor=next_cursor,
+        )
 
     async def update(self, assignment: Assignment) -> Assignment:
         query = (

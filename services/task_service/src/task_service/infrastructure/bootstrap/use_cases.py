@@ -4,6 +4,7 @@ from task_service.domain.services import ScoringService
 from task_service.application.use_cases.assignment import (
     CreateAssignmentUseCase,
     GetAssignmentUseCase,
+    GetAssignmentPageUseCase,
     UpdateAssignmentUseCase,
     DeleteAssignmentUseCase,
 )
@@ -33,7 +34,6 @@ from task_service.application.use_cases.final_result import (
     DeleteFinalResultUseCase,
 )
 from task_service.application.use_cases.workflows import (
-    PreviewRunUseCase,
     ProcessSubmissionUseCase,
     PollSubmissionResultUseCase,
     FinalizeGroupAssignmentUseCase,
@@ -66,6 +66,10 @@ class UseCases:
     @property
     def get_assignment(self) -> GetAssignmentUseCase:
         return GetAssignmentUseCase(uow=self.uow_factory())
+
+    @property
+    def get_assignment_page(self) -> GetAssignmentPageUseCase:
+        return GetAssignmentPageUseCase(uow=self.uow_factory())
 
     @property
     def update_assignment(self) -> UpdateAssignmentUseCase:
@@ -159,10 +163,6 @@ class UseCases:
     @property
     def delete_final_result(self) -> DeleteFinalResultUseCase:
         return DeleteFinalResultUseCase(uow=self.uow_factory())
-
-    @property
-    def preview_run(self) -> PreviewRunUseCase:
-        return PreviewRunUseCase(checking_service=self.checking_service)
 
     @property
     def process_submission(self) -> ProcessSubmissionUseCase:

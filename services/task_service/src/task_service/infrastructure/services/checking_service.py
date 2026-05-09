@@ -2,11 +2,7 @@ from uuid import UUID
 
 from httpx import AsyncClient, Timeout
 
-from task_service.application.dto.evaluation import (
-    EvaluationDTO,
-    PreviewRunDTO,
-    PreviewRunResultDTO,
-)
+from task_service.application.dto.evaluation import EvaluationDTO
 from task_service.application.ports import CheckingService
 
 
@@ -50,25 +46,6 @@ class HTTPCheckingService(CheckingService):
 
         return EvaluationDTO(
             id=payload["id"],
-            status=payload["status"],
-            tests_passed=payload["passed_tests_count"],
-            tests_total=payload["total_tests_count"],
-        )
-
-    async def preview_run(self, dto: PreviewRunDTO) -> PreviewRunResultDTO:
-        async with AsyncClient(timeout=Timeout(self.timeout)) as client:
-            response = await client.post(
-                f"{self.base_url}/evaluations/start",
-                json={
-                    "assignment_id": str(dto.assignment_id),
-                    "language": dto.language,
-                    "code": dto.code,
-                },
-            )
-            response.raise_for_status()
-            payload = response.json()
-
-        return PreviewRunResultDTO(
             status=payload["status"],
             tests_passed=payload["passed_tests_count"],
             tests_total=payload["total_tests_count"],

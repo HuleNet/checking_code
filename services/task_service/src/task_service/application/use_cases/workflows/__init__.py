@@ -1,6 +1,3 @@
-from task_service.application.use_cases.workflows.preview_run_use_case import (
-    PreviewRunUseCase,
-)
 from task_service.application.use_cases.workflows.process_submission import (
     ProcessSubmissionUseCase,
 )
@@ -19,7 +16,6 @@ from task_service.application.use_cases.workflows.publish_outbox_events_use_case
 
 
 __all__ = (
-    "PreviewRunUseCase",
     "ProcessSubmissionUseCase",
     "PollSubmissionResultUseCase",
     "FinalizeGroupAssignmentUseCase",

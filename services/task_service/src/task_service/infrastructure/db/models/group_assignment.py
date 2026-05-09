@@ -21,7 +21,9 @@ class GroupAssignmentORM(BaseModel):
     )
     deadline: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     status: Mapped[GroupAssignmentStatus] = mapped_column(
-        Enum(GroupAssignmentStatus, native_enum=False), nullable=False, index=True,
+        Enum(GroupAssignmentStatus, native_enum=False),
+        nullable=False,
+        index=True,
     )
     finalized_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
