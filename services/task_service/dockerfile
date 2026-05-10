@@ -21,4 +21,4 @@ ENV PYTHONPATH=/app/src
 
 EXPOSE 8000
 
-CMD ["uv", "run", "python", "-m", "checking_service.main"]
+CMD ["uv", "run", "python", "-m", "task_service.main"]

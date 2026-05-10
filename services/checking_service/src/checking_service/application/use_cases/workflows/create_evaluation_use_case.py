@@ -72,11 +72,12 @@ class CreateEvaluationUseCase:
             )
 
             async with self.uow as uow:
-                result = await self.uow.evaluation_repo.add(evaluation=evaluation)
+                result = await uow.evaluation_repo.add(evaluation=evaluation)
                 await self.uow.execution_case_repo.add_many(
                     execution_cases=execution_cases
                 )
                 await uow.track(entity=result)
+                await uow.commit()
 
             return EvaluationMapper.to_dto(domain=result)
 

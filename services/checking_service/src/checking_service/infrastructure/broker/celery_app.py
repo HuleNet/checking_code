@@ -18,10 +18,10 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,
     task_routes={
         "run_evaluation": {
-            "queue": "evaluation.evaluate",
+            "queue": "checking.evaluation.evaluate",
         },
         "publish_outbox_events": {
-            "queue": "outbox.publish",
+            "queue": "checking.outbox.publish",
         },
     },
     beat_schedule={

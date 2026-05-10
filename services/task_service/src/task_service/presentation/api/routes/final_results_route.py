@@ -8,7 +8,7 @@ from task_service.presentation.schemas.pagination import PageResponse
 from task_service.presentation.schemas.final_result import FinalResultResponse
 
 
-final_result_route = APIRouter(prefix="final-results", tags=["Final Results"])
+final_result_route = APIRouter(prefix="/final-results", tags=["Final Results"])
 
 
 @final_result_route.get(

@@ -26,7 +26,7 @@ class LanguageConfig:
 
 LANG_CONFIG: dict[Language, LanguageConfig] = {
     Language.PYTHON: LanguageConfig(
-        image="python:3.11-alpine",
+        image="python:3.13-slim",
         filename="main.py",
         compile=None,
         run=["python3", "main.py"],

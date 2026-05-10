@@ -12,7 +12,7 @@ from task_service.presentation.schemas.group_assignment import (
 
 
 group_assignment_route = APIRouter(
-    prefix="group-assignments", tags=["Group Assignments"]
+    prefix="/group-assignments", tags=["Group Assignments"]
 )
 
 

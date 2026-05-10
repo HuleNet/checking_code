@@ -50,13 +50,13 @@ class SQLAlchemyOutboxRepository(OutboxRepository):
 
     async def get_unprocessed(
         self,
-        batch_size: int,
+        limit: int,
     ) -> list[OutboxMessage]:
         query = (
             select(self.model)
             .where(self.model.processed_at.is_(None))
             .order_by(self.model.occurred_at)
-            .limit(batch_size)
+            .limit(limit)
         )
 
         try:
@@ -68,7 +68,7 @@ class SQLAlchemyOutboxRepository(OutboxRepository):
                 details={
                     "entity": "outbox_message",
                     "operation": "get_unprocessed",
-                    "batch_size": batch_size,
+                    "limit": limit,
                 },
             ) from exc
 

@@ -12,7 +12,7 @@ from task_service.presentation.schemas.assignment import (
 )
 
 
-assignment_route = APIRouter(prefix="assignments", tags=["Assignments"])
+assignment_route = APIRouter(prefix="/assignments", tags=["Assignments"])
 
 
 @assignment_route.post(

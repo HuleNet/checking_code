@@ -27,7 +27,7 @@ async def run_evaluation(payload: StartEvaluationRequest) -> EvaluationResponse:
 
 
 @evaluation_router.post(
-    "/run",
+    "/preview-run",
     response_model=PreviewEvaluationResponse,
     status_code=status.HTTP_200_OK,
 )

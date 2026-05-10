@@ -11,7 +11,7 @@ from task_service.presentation.schemas.submission import (
 )
 
 
-submission_route = APIRouter(prefix="submissions", tags=["Submissions"])
+submission_route = APIRouter(prefix="/submissions", tags=["Submissions"])
 
 
 @submission_route.post(

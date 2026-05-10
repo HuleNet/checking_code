@@ -1,0 +1,137 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: postgres
+    environment:
+      POSTGRES_USER: app
+      POSTGRES_PASSWORD: app
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init:/docker-entrypoint-initdb.d      
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  rabbitmq:
+    image: rabbitmq:3.13-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: app
+      RABBITMQ_DEFAULT_PASS: app
+    ports:
+      - "5672:5672" 
+      - "15672:15672"    
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  task_service:
+    build:
+      context: ./services/task_service
+    container_name: task_service
+    env_file:
+      - ./services/task_service/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8001:8000"
+
+  checking_service:
+    build:
+      context: ./services/checking_service
+    container_name: checking_service
+    env_file:
+      - ./services/checking_service/.env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    ports:
+      - "8002:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock      
+
+  task_worker:
+    build:
+      context: ./services/task_service
+    container_name: task_worker
+    command: >
+      uv run celery
+      -A task_service.infrastructure.broker.celery_app
+      worker
+      --loglevel=info
+      -Q task.submission.check,task.group_assignment.finalize,task.outbox.publish
+    env_file:
+      - ./services/task_service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  checking_worker:
+    build:
+      context: ./services/checking_service
+    container_name: checking_worker
+    command: >
+      uv run celery
+      -A checking_service.infrastructure.broker.celery_app
+      worker
+      --loglevel=info
+      -Q checking.evaluation.evaluate,checking.outbox.publish
+    env_file:
+      - ./services/checking_service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock      
+
+  task_beat:
+    build:
+      context: ./services/task_service
+    container_name: task_beat
+    command: >
+      uv run celery
+      -A task_service.infrastructure.broker.celery_app
+      beat
+      --loglevel=info
+    env_file:
+      - ./services/task_service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy   
+
+  checking_beat:
+    build:
+      context: ./services/checking_service
+    container_name: checking_beat
+    command: >
+      uv run celery
+      -A checking_service.infrastructure.broker.celery_app
+      beat
+      --loglevel=info
+    env_file:
+      - ./services/checking_service/.env
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy              
+
+volumes:
+  postgres_data:

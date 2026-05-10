@@ -19,17 +19,17 @@ celery_app.conf.update(
     worker_prefetch_multiplier=1,
     task_routes={
         "process_submission": {
-            "queue": "submission.check",
+            "queue": "task.submission.check",
         },
-        "poll_submission_result": {"queue": "submission.check"},
+        "poll_submission_result": {"queue": "task.submission.check"},
         "finalize_group_assignment": {
-            "queue": "group_assignment.finalize",
+            "queue": "task.group_assignment.finalize",
         },
         "scan_expired_group_assignments": {
-            "queue": "group_assignment.finalize",
+            "queue": "task.group_assignment.finalize",
         },
         "publish_outbox_events": {
-            "queue": "outbox.publish",
+            "queue": "task.outbox.publish",
         },
     },
     beat_schedule={

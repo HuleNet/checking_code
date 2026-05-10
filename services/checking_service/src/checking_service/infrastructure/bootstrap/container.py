@@ -20,7 +20,7 @@ class Container:
     @cached_property
     def runner(self) -> DockerRunner:
         return DockerRunner(
-            timeout_sec=self.settings.timeout_sec,
+            timeout_sec=self.settings.time_limit_sec,
             memory_limit_mb=self.settings.memory_limit_mb,
             cpu_limit=self.settings.run_cpu_limit,
         )
