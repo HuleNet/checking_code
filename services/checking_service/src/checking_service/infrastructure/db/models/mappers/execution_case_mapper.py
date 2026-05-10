@@ -13,10 +13,12 @@ class ExecutionCaseMapper:
             input_data=orm.input_data,
             expected_output=orm.expected_output,
             check_type=orm.check_type,
-            status=orm.status,
             stdout=orm.stdout,
             stderr=orm.stderr,
             execution_time_ms=orm.execution_time_ms,
+            exit_code=orm.exit_code,
+            is_timeout=orm.is_timeout,
+            is_memory_exceeded=orm.is_memory_exceeded,
         )
 
     @staticmethod
@@ -27,8 +29,10 @@ class ExecutionCaseMapper:
             "input_data": domain.input_data,
             "expected_output": domain.expected_output,
             "check_type": domain.check_type,
-            "status": domain.status,
             "stdout": domain.stdout,
             "stderr": domain.stderr,
             "execution_time_ms": domain.execution_time_ms,
+            "exit_code": domain.exit_code,
+            "is_timeout": domain.is_timeout,
+            "is_memory_exceeded": domain.is_memory_exceeded,
         }

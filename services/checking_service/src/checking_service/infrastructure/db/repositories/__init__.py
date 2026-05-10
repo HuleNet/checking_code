@@ -1,5 +1,5 @@
-from checking_service.infrastructure.db.repositories.input_case_repo import (
-    SQLAlchemyInputCaseRepository,
+from checking_service.infrastructure.db.repositories.test_case_repo import (
+    SQLAlchemyTestCaseRepository,
 )
 from checking_service.infrastructure.db.repositories.evaluation_repo import (
     SQLAlchemyEvaluationRepository,
@@ -15,6 +15,6 @@ from checking_service.infrastructure.db.repositories.outbox_repo import (
 __all__ = (
     "SQLAlchemyEvaluationRepository",
     "SQLAlchemyExecutionCaseRepository",
-    "SQLAlchemyInputCaseRepository",
+    "SQLAlchemyTestCaseRepository",
     "SQLAlchemyOutboxRepository",
 )

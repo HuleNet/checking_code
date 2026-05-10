@@ -2,15 +2,13 @@ from dataclasses import dataclass
 from uuid import UUID
 from datetime import datetime
 
-from checking_service.application.dto.execution_case import ExecutionCaseDTO
-
 
 @dataclass(frozen=True)
 class EvaluationDTO:
     id: UUID
     submission_id: UUID
-    total_tests_count: int
-    passed_tests_count: int
+    tests_total: int
+    tests_passed: int
     status: str
     created_at: datetime
     started_at: datetime | None
@@ -19,12 +17,11 @@ class EvaluationDTO:
 @dataclass(frozen=True)
 class CreateEvaluationDTO:
     submission_id: UUID
-    total_tests_count: int
+    tests_total: int
 
 
 @dataclass(frozen=True)
 class PreviewEvaluationDTO:
-    total_tests_count: int
-    passed_tests_count: int
+    tests_total: int
+    tests_passed: int
     status: str
-    summary_execution_case: ExecutionCaseDTO | None

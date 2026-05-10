@@ -1,9 +1,9 @@
-from typing import Protocol
+from typing import Protocol, Any
 
 from checking_service.application.ports.repositories import (
     EvaluationRepository,
     ExecutionCaseRepository,
-    InputCaseRepository,
+    TestCaseRepository,
     OutboxRepository,
 )
 
@@ -11,10 +11,15 @@ from checking_service.application.ports.repositories import (
 class UnitOfWork(Protocol):
     evaluation_repo: EvaluationRepository
     execution_case_repo: ExecutionCaseRepository
-    input_case_repo: InputCaseRepository
+    test_case_repo: TestCaseRepository
     outbox_repo: OutboxRepository
 
     async def __aenter__(self) -> "UnitOfWork": ...
+
     async def __aexit__(self, exc_type, exc, tb): ...
+
     async def commit(self) -> None: ...
+
     async def rollback(self) -> None: ...
+
+    async def track(self, entity: Any) -> None: ...

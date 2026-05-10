@@ -1,5 +1,6 @@
 from uuid import UUID
 
+from checking_service.domain.errors import DomainError
 from checking_service.application.dto.evaluation import EvaluationDTO
 from checking_service.application.dto.mappers import EvaluationMapper
 from checking_service.application.ports import UnitOfWork
@@ -7,6 +8,7 @@ from checking_service.application.errors import (
     ApplicationError,
     NotFoundError,
     InternalError,
+    ValidationError,
 )
 
 
@@ -31,6 +33,12 @@ class DeleteEvaluationUseCase:
                 await uow.commit()
 
             return EvaluationMapper.to_dto(domain=domain_result)
+
+        except DomainError as exc:
+            raise ValidationError(
+                message=exc.message,
+                details=exc.details,
+            ) from exc
 
         except ApplicationError:
             raise

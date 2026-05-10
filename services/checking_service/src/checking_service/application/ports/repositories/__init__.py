@@ -4,8 +4,8 @@ from checking_service.application.ports.repositories.evaluation_repo import (
 from checking_service.application.ports.repositories.execution_case_repo import (
     ExecutionCaseRepository,
 )
-from checking_service.application.ports.repositories.input_case_repo import (
-    InputCaseRepository,
+from checking_service.application.ports.repositories.test_case_repo import (
+    TestCaseRepository,
 )
 from checking_service.application.ports.repositories.outbox_repo import OutboxRepository
 
@@ -13,6 +13,6 @@ from checking_service.application.ports.repositories.outbox_repo import OutboxRe
 __all__ = (
     "EvaluationRepository",
     "ExecutionCaseRepository",
-    "InputCaseRepository",
+    "TestCaseRepository",
     "OutboxRepository",
 )

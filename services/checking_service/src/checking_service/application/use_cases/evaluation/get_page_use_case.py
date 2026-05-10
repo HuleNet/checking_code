@@ -1,10 +1,15 @@
 from uuid import UUID
 
+from checking_service.domain.errors import DomainError
 from checking_service.application.dto.evaluation import EvaluationDTO
 from checking_service.application.dto.mappers import EvaluationMapper
 from checking_service.application.models.pagination import CursorPagination, Page
 from checking_service.application.ports import UnitOfWork
-from checking_service.application.errors import ApplicationError, InternalError
+from checking_service.application.errors import (
+    ApplicationError,
+    InternalError,
+    ValidationError,
+)
 
 
 class GetEvaluationPageUseCase:
@@ -27,6 +32,12 @@ class GetEvaluationPageUseCase:
                 ],
                 next_cursor=domain_page.next_cursor,
             )
+
+        except DomainError as exc:
+            raise ValidationError(
+                message=exc.message,
+                details=exc.details,
+            ) from exc
 
         except ApplicationError:
             raise

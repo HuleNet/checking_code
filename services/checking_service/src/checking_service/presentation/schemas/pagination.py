@@ -1,6 +1,6 @@
 from typing import Generic, TypeVar, Any
 
-from checking_service.presentation.schemas import BaseSchema
+from checking_service.presentation.schemas.base_schema import BaseSchema
 
 
 T = TypeVar("T")

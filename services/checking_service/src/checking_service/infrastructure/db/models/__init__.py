@@ -1,5 +1,5 @@
 from checking_service.infrastructure.db.models.base_model import BaseModel
-from checking_service.infrastructure.db.models.input_case import InputCaseORM
+from checking_service.infrastructure.db.models.test_case import TestCaseORM
 from checking_service.infrastructure.db.models.evaluation import EvaluationORM
 from checking_service.infrastructure.db.models.execution_case import ExecutionCaseORM
 from checking_service.infrastructure.db.models.outbox_message import OutboxMessageORM
@@ -7,7 +7,7 @@ from checking_service.infrastructure.db.models.outbox_message import OutboxMessa
 
 __all__ = (
     "BaseModel",
-    "InputCaseORM",
+    "TestCaseORM",
     "EvaluationORM",
     "ExecutionCaseORM",
     "OutboxMessageORM",

@@ -9,15 +9,20 @@ class ExecutionCaseDTO:
     input_data: str
     expected_output: str
     check_type: str
-    status: str | None
-    stdout: str | None
-    stderr: str | None
-    execution_time_ms: int | None
+    stdout: str | None = None
+    stderr: str | None = None
+    execution_time_ms: int | None = None
+    exit_code: int | None = None
+    is_timeout: bool | None = None
+    is_memory_exceeded: bool | None = None
 
 
 @dataclass(frozen=True)
-class UpdateExecutionCaseDTO:
-    status: str
+class ExecutionCaseResultDTO:
+    id: UUID
     stdout: str
     stderr: str
     execution_time_ms: int
+    exit_code: int
+    is_timeout: bool
+    is_memory_exceeded: bool

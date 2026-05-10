@@ -1,19 +1,11 @@
 from checking_service.domain.errors import BaseError
 
 
-class TransientError(Exception):
-    pass
-
-
-class PermanentError(Exception):
-    pass
-
-
 class InfrastructureError(BaseError):
     code = "infrastructure_error"
 
 
-class RepositoryError(InfrastructureError, PermanentError):
+class RepositoryError(InfrastructureError):
     code = "repository_error"
 
 
@@ -25,5 +17,5 @@ class RepositoryInternalError(RepositoryError):
     code = "repository_internal_error"
 
 
-class RunnerError(InfrastructureError, TransientError):
+class RunnerError(InfrastructureError):
     code = "runner_error"

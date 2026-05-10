@@ -40,7 +40,7 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
                 message="Some of ExecutionCases already exist",
                 details={
                     "entity": "execution_case",
-                    "operation": "bulk_insert",
+                    "operation": "add_many",
                     "execution_cases_count": len(execution_cases),
                 },
             ) from exc
@@ -50,7 +50,7 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
                 message="Failed to bulk insert ExecutionCases",
                 details={
                     "entity": "execution_case",
-                    "operation": "bulk_insert",
+                    "operation": "add_many",
                     "execution_cases_count": len(execution_cases),
                 },
             ) from exc
@@ -152,13 +152,6 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
             update(self.model)
             .where(self.model.id.in_(ids))
             .values(
-                status=case(
-                    {
-                        execution_case.id: execution_case.status
-                        for execution_case in execution_cases
-                    },
-                    value=self.model.id,
-                ),
                 stdout=case(
                     {
                         execution_case.id: execution_case.stdout
@@ -179,6 +172,24 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
                         for execution_case in execution_cases
                     },
                     value=self.model.id,
+                ),
+                exit_code=case(
+                    {
+                        execution_case.id: execution_case.exit_code
+                        for execution_case in execution_cases
+                    },
+                ),
+                is_timeout=case(
+                    {
+                        execution_case.id: execution_case.is_timeout
+                        for execution_case in execution_cases
+                    },
+                ),
+                is_memory_exceeded=case(
+                    {
+                        execution_case.id: execution_case.is_memory_exceeded
+                        for execution_case in execution_cases
+                    },
                 ),
             )
         )

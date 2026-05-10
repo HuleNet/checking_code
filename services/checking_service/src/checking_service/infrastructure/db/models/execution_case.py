@@ -1,11 +1,11 @@
 from uuid import UUID
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, Integer, Enum, ForeignKey
+from sqlalchemy import String, Integer, Enum, Boolean, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
-from checking_service.domain.enums import ExecutionStatus, CheckType
+from checking_service.domain.value_objects import CheckType
 from checking_service.infrastructure.db.models.base_model import (
     BaseModel,
     MAX_STR_LENGTH,
@@ -30,11 +30,11 @@ class ExecutionCaseORM(BaseModel):
     check_type: Mapped[CheckType] = mapped_column(
         Enum(CheckType, native_enum=False), nullable=False
     )
-    status: Mapped[ExecutionStatus | None] = mapped_column(
-        Enum(ExecutionStatus, native_enum=False), nullable=True
-    )
     stdout: Mapped[str | None] = mapped_column(String(MAX_STR_LENGTH), nullable=True)
     stderr: Mapped[str | None] = mapped_column(String(MAX_STR_LENGTH), nullable=True)
     execution_time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    exit_code: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    is_timeout: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    is_memory_exceeded: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
 
     evaluation: Mapped["EvaluationORM"] = relationship(back_populates="execution_cases")

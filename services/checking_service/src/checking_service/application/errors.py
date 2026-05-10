@@ -17,9 +17,5 @@ class ExecutionError(ApplicationError):
     code = "execution_error"
 
 
-class ExecutionContractError(ExecutionError):
-    code = "execution_contract_error"
-
-
 class InternalError(ApplicationError):
     code = "internal_error"

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from checking_service.presentation.schemas import BaseSchema
+from checking_service.presentation.schemas.base_schema import BaseSchema
 
 
 class ExecutionCaseResponse(BaseSchema):
@@ -9,7 +9,9 @@ class ExecutionCaseResponse(BaseSchema):
     input_data: str
     expected_output: str
     check_type: str
-    status: str | None
-    stdout: str | None
-    stderr: str | None
-    execution_time_ms: int | None
+    stdout: str | None = None
+    stderr: str | None = None
+    execution_time_ms: int | None = None
+    exit_code: int | None = None
+    is_timeout: bool | None = None
+    is_memory_exceeded: bool | None = None

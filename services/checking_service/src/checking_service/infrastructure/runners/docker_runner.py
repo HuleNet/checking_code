@@ -1,4 +1,3 @@
-from logging import getLogger
 from io import BytesIO
 from dataclasses import dataclass
 from json import dumps, loads
@@ -11,16 +10,10 @@ from pathlib import Path
 from docker import from_env
 from docker.models.containers import Container
 
-from checking_service.domain.enums import Language
+from checking_service.domain.value_objects import Language
 from checking_service.domain.entities import ExecutionCase
-from checking_service.application.models.runner_result import RunnerResult
+from checking_service.application.dto.execution_case import ExecutionCaseResultDTO
 from checking_service.application.ports import Runner
-from checking_service.infrastructure.errors import TransientError
-from checking_service.infrastructure.utils import retryable
-from checking_service.infrastructure.core import get_settings_cached
-
-
-logger = getLogger(__name__)
 
 
 @dataclass
@@ -60,26 +53,12 @@ class DockerRunner(Runner):
         self.cpu_limit = cpu_limit
         self.executor_path = Path(__file__).parent / "executor.py"
 
-    @retryable(
-        attempts=get_settings_cached().runner_retry_attempts,
-        base_delay=get_settings_cached().runner_retry_base_delay_sec,
-        max_delay=get_settings_cached().runner_retry_max_delay_sec,
-        exceptions=(TransientError,),
-    )
     async def run(
         self,
         code: str,
         language: Language,
         execution_cases: list[ExecutionCase],
-    ) -> list[RunnerResult]:
-        logger.info(
-            "docker_run_started",
-            extra={
-                "extra": {
-                    "language": language.value,
-                },
-            },
-        )
+    ) -> list[ExecutionCaseResultDTO]:
         return await to_thread(self._run_sync, code, language, execution_cases)
 
     def _run_sync(
@@ -87,7 +66,7 @@ class DockerRunner(Runner):
         code: str,
         language: Language,
         execution_cases: list[ExecutionCase],
-    ) -> list[RunnerResult]:
+    ) -> list[ExecutionCaseResultDTO]:
         config = LANG_CONFIG[language]
         container: Container | None = None
         start_time = time()
@@ -136,14 +115,14 @@ class DockerRunner(Runner):
 
             if oom_killed:
                 return [
-                    RunnerResult(
-                        execution_case_id=case.id,
+                    ExecutionCaseResultDTO(
+                        id=case.id,
                         stdout="",
                         stderr="MEMORY_LIMIT_EXCEEDED",
                         execution_time_ms=duration_ms,
                         exit_code=-1,
-                        timeout=False,
-                        memory_exceeded=True,
+                        is_timeout=False,
+                        is_memory_exceeded=True,
                     )
                     for case in execution_cases
                 ]
@@ -174,20 +153,19 @@ class DockerRunner(Runner):
             result_map: dict[str, dict[str, Any]] = {r["id"]: r for r in data}
 
             return [
-                RunnerResult(
-                    execution_case_id=case.id,
+                ExecutionCaseResultDTO(
+                    id=case.id,
                     stdout=result_map[str(case.id)]["stdout"],
                     stderr=result_map[str(case.id)]["stderr"],
                     execution_time_ms=result_map[str(case.id)]["execution_time_ms"],
                     exit_code=result_map[str(case.id)]["exit_code"],
-                    timeout=result_map[str(case.id)]["timeout"],
-                    memory_exceeded=False,
+                    is_timeout=result_map[str(case.id)]["timeout"],
+                    is_memory_exceeded=False,
                 )
                 for case in execution_cases
             ]
 
         except Exception as e:
-            logger.exception("docker_run_failed")
             duration_ms = int((time() - start_time) * 1000)
             return self._fail_all(
                 execution_cases, duration_ms, f"RUNNER_ERROR: {str(e)}"
@@ -241,28 +219,28 @@ class DockerRunner(Runner):
 
     def _fail_all(self, execution_cases, duration_ms, error):
         return [
-            RunnerResult(
-                execution_case_id=case.id,
+            ExecutionCaseResultDTO(
+                id=case.id,
                 stdout="",
                 stderr=error,
                 execution_time_ms=duration_ms,
                 exit_code=-1,
-                timeout=(error == "TIMEOUT"),
-                memory_exceeded=False,
+                is_timeout=(error == "TIMEOUT"),
+                is_memory_exceeded=False,
             )
             for case in execution_cases
         ]
 
     def _compile_fail_all(self, execution_cases, stderr):
         return [
-            RunnerResult(
-                execution_case_id=case.id,
+            ExecutionCaseResultDTO(
+                id=case.id,
                 stdout="",
                 stderr=stderr,
                 execution_time_ms=0,
                 exit_code=-1,
-                timeout=False,
-                memory_exceeded=False,
+                is_timeout=False,
+                is_memory_exceeded=False,
             )
             for case in execution_cases
         ]

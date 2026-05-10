@@ -10,6 +10,8 @@ from checking_service.application.use_cases.execution_case.get_page_use_case imp
 
 
 __all__ = (
+    "CreateExecutionCasesUseCase",
+    "RunExecutionCasesUseCase",
     "GetExecutionCaseUseCase",
     "GetExecutionCasesByEvaluationUseCase",
     "GetExecutionCasePageUseCase",

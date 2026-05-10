@@ -5,7 +5,7 @@ from sqlalchemy import insert, select, update, delete, or_, and_
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from checking_service.domain.enums import EvaluationStatus
+from checking_service.domain.value_objects import EvaluationStatus
 from checking_service.domain.entities import Evaluation
 from checking_service.application.models.pagination import CursorPagination, Page
 from checking_service.application.ports.repositories import EvaluationRepository
@@ -37,7 +37,7 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
                 message="Evaluation already exists",
                 details={
                     "entity": "evaluation",
-                    "operation": "insert",
+                    "operation": "add",
                     "id": evaluation.id,
                 },
             ) from exc
@@ -47,7 +47,7 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
                 message="Failed to insert Evaluation",
                 details={
                     "entity": "evaluation",
-                    "operation": "insert",
+                    "operation": "add",
                     "id": evaluation.id,
                 },
             ) from exc
@@ -196,7 +196,7 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
             )
             .values(
                 status=evaluation.status,
-                passed_tests_count=evaluation.passed_tests_count,
+                tests_passed=evaluation.tests_passed,
             )
             .returning(self.model)
         )
@@ -212,7 +212,7 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
                     "operation": "update",
                     "id": evaluation.id,
                     "status": evaluation.status.value,
-                    "passed_tests_count": evaluation.passed_tests_count,
+                    "tests_passed": evaluation.tests_passed,
                 },
             ) from exc
 

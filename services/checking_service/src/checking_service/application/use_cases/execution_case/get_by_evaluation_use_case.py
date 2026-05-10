@@ -1,9 +1,14 @@
 from uuid import UUID
 
+from checking_service.domain.errors import DomainError
 from checking_service.application.dto.execution_case import ExecutionCaseDTO
 from checking_service.application.dto.mappers import ExecutionCaseMapper
 from checking_service.application.ports import UnitOfWork
-from checking_service.application.errors import ApplicationError, InternalError
+from checking_service.application.errors import (
+    ApplicationError,
+    InternalError,
+    ValidationError,
+)
 
 
 class GetExecutionCasesByEvaluationUseCase:
@@ -20,6 +25,12 @@ class GetExecutionCasesByEvaluationUseCase:
             return [
                 ExecutionCaseMapper.to_dto(domain=domain) for domain in domain_results
             ]
+
+        except DomainError as exc:
+            raise ValidationError(
+                message=exc.message,
+                details=exc.details,
+            ) from exc
 
         except ApplicationError:
             raise

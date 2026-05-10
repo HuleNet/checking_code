@@ -10,8 +10,8 @@ class EvaluationMapper:
         return Evaluation(
             id=orm.id,
             submission_id=orm.submission_id,
-            total_tests_count=orm.total_tests_count,
-            passed_tests_count=orm.passed_tests_count,
+            tests_total=orm.tests_total,
+            tests_passed=orm.tests_passed,
             status=orm.status,
             created_at=orm.created_at,
             started_at=orm.started_at,
@@ -22,8 +22,8 @@ class EvaluationMapper:
         return {
             "id": domain.id,
             "submission_id": domain.submission_id,
-            "total_tests_count": domain.total_tests_count,
-            "passed_tests_count": domain.passed_tests_count,
+            "tests_total": domain.tests_total,
+            "tests_passed": domain.tests_passed,
             "status": domain.status,
             "created_at": domain.created_at,
             "started_at": domain.started_at,
