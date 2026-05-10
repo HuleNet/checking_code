@@ -20,7 +20,7 @@ class HTTPCheckingService(CheckingService):
     ) -> EvaluationDTO:
         async with AsyncClient(timeout=Timeout(self.timeout)) as client:
             response = await client.post(
-                f"{self.base_url}/evaluations/start",
+                f"{self.base_url}/evaluations/run",
                 json={
                     "submission_id": str(submission_id),
                     "assignment_id": str(assignment_id),

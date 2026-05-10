@@ -12,7 +12,7 @@ class OutboxMessageMapper:
             event_type=orm.event_type,
             payload=orm.payload,
             occurred_at=orm.occurred_at,
-            processed=orm.processed,
+            processed_at=orm.processed_at,
         )
 
     @staticmethod
@@ -22,5 +22,5 @@ class OutboxMessageMapper:
             "event_type": app_model.event_type,
             "payload": app_model.payload,
             "occurred_at": app_model.occurred_at,
-            "processed": app_model.processed,
+            "processed_at": app_model.processed_at,
         }

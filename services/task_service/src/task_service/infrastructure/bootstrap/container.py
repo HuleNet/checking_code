@@ -2,8 +2,7 @@ from functools import cached_property
 
 from task_service.domain.services import ScoringService
 from task_service.infrastructure.db import SQLAlchemyUnitOfWork, SessionLocal
-from task_service.infrastructure.broker.celery_app import celery_app
-from task_service.infrastructure.broker.task_dispatcher import CeleryTaskDispatcher
+from task_service.infrastructure.broker import celery_app, CeleryTaskDispatcher
 from task_service.infrastructure.services import HTTPCheckingService
 from task_service.infrastructure.core import get_settings_cached
 from task_service.infrastructure.bootstrap.use_cases import UseCases

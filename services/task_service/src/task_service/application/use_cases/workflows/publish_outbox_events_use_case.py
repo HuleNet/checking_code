@@ -14,14 +14,18 @@ class PublishOutboxEventsUseCase:
             async with self.uow as uow:
                 messages = await uow.outbox_repo.get_unprocessed(limit=batch_size)
 
+                if not messages:
+                    return
+
                 for message in messages:
                     if message.event_type == "SubmissionCreatedEvent":
                         await self.task_dispatcher.process_submission(
                             submission_id=UUID(message.payload["submission_id"])
                         )
 
-                    await uow.outbox_repo.mark_processed(id=message.id)
-
+                await uow.outbox_repo.mark_processed(
+                    ids=[message.id for message in messages]
+                )
                 await uow.commit()
 
         except Exception as exc:

@@ -1,8 +1,8 @@
 """init
 
-Revision ID: b1dbbbb0f24b
+Revision ID: 0923de033b42
 Revises:
-Create Date: 2026-05-09 00:25:16.666740
+Create Date: 2026-05-10 16:51:34.937356
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "b1dbbbb0f24b"
+revision: str = "0923de033b42"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -107,8 +107,14 @@ def upgrade() -> None:
         sa.Column("event_type", sa.String(length=255), nullable=False),
         sa.Column("payload", sa.JSON(), nullable=False),
         sa.Column("occurred_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("processed", sa.Boolean(), nullable=False),
+        sa.Column("processed_at", sa.DateTime(timezone=True), nullable=True),
         sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index(
+        op.f("ix_outbox_messages_processed_at"),
+        "outbox_messages",
+        ["processed_at"],
+        unique=False,
     )
     op.create_table(
         "submissions",
@@ -191,6 +197,7 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_submissions_assignment_id"), table_name="submissions")
     op.drop_index("idx_submission_student_assignment_attempt", table_name="submissions")
     op.drop_table("submissions")
+    op.drop_index(op.f("ix_outbox_messages_processed_at"), table_name="outbox_messages")
     op.drop_table("outbox_messages")
     op.drop_index(op.f("ix_group_assignments_status"), table_name="group_assignments")
     op.drop_table("group_assignments")

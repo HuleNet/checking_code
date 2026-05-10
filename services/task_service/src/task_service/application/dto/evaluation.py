@@ -7,6 +7,8 @@ EvaluationStatus = Literal[
     "RUNNING",
     "PASSED",
     "FAILED",
+    "TIMEOUT",
+    "MEMORY_EXCEEDED",
     "ERROR",
 ]
 

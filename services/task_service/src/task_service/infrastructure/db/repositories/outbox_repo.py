@@ -1,4 +1,5 @@
 from uuid import UUID
+from datetime import datetime, timezone
 
 from sqlalchemy import insert, select, update
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
@@ -47,8 +48,16 @@ class SQLAlchemyOutboxRepository(OutboxRepository):
                 },
             ) from exc
 
-    async def get_unprocessed(self, limit: int) -> list[OutboxMessage]:
-        query = select(self.model).where(self.model.processed.is_(False)).limit(limit)
+    async def get_unprocessed(
+        self,
+        batch_size: int,
+    ) -> list[OutboxMessage]:
+        query = (
+            select(self.model)
+            .where(self.model.processed_at.is_(None))
+            .order_by(self.model.occurred_at)
+            .limit(batch_size)
+        )
 
         try:
             orm_results = await self.session.execute(query)
@@ -59,6 +68,7 @@ class SQLAlchemyOutboxRepository(OutboxRepository):
                 details={
                     "entity": "outbox_message",
                     "operation": "get_unprocessed",
+                    "batch_size": batch_size,
                 },
             ) from exc
 
@@ -67,45 +77,38 @@ class SQLAlchemyOutboxRepository(OutboxRepository):
             for orm in orm_results.scalars().all()
         ]
 
-    async def mark_processed(self, id: UUID) -> None:
+    async def mark_processed(
+        self,
+        ids: list[UUID],
+    ) -> None:
+        if not ids:
+            return
+
         query = (
             update(self.model)
-            .where(self.model.id == id)
-            .values(processed=True)
-            .returning(self.model)
+            .where(self.model.id.in_(ids))
+            .values(processed_at=datetime.now(timezone.utc))
         )
 
         try:
-            orm_result = await self.session.execute(query)
+            await self.session.execute(query)
 
         except IntegrityError as exc:
             raise RepositoryIntegrityError(
-                message="Failed to mark OutboxMessage as processed",
+                message="Failed to mark OutboxMessages as processed",
                 details={
                     "entity": "outbox_message",
                     "operation": "mark_processed",
-                    "id": id,
+                    "ids": ids,
                 },
             ) from exc
 
         except SQLAlchemyError as exc:
             raise RepositoryInternalError(
-                message="Failed to mark OutboxMessage as processed",
+                message="Failed to mark OutboxMessages as processed",
                 details={
                     "entity": "outbox_message",
                     "operation": "mark_processed",
-                    "id": id,
+                    "ids": ids,
                 },
             ) from exc
-
-        orm = orm_result.scalar_one_or_none()
-
-        if orm is None:
-            raise RepositoryIntegrityError(
-                message="OutboxMessage not found",
-                details={
-                    "entity": "outbox_message",
-                    "operation": "mark_processed",
-                    "id": id,
-                },
-            )

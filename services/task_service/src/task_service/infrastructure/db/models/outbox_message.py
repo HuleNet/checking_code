@@ -1,7 +1,7 @@
 from uuid import UUID
 from datetime import datetime
 
-from sqlalchemy import String, DateTime, JSON, Boolean
+from sqlalchemy import String, DateTime, JSON
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
@@ -18,7 +18,6 @@ class OutboxMessageORM(BaseModel):
         DateTime(timezone=True),
         nullable=False,
     )
-    processed: Mapped[bool] = mapped_column(
-        Boolean,
-        nullable=False,
+    processed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, index=True
     )

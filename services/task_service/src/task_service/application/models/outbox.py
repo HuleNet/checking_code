@@ -10,4 +10,4 @@ class OutboxMessage:
     event_type: str
     payload: dict[str, Any]
     occurred_at: datetime
-    processed: bool = False
+    processed_at: datetime | None = None
