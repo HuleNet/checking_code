@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 42cd13d6978d
+Revision ID: fa100aba2e59
 Revises: 
-Create Date: 2026-05-10 16:38:12.510512
+Create Date: 2026-05-11 18:50:38.360938
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = '42cd13d6978d'
+revision: str = 'fa100aba2e59'
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,22 +26,11 @@ def upgrade() -> None:
     sa.Column('submission_id', sa.UUID(), nullable=False),
     sa.Column('tests_total', sa.Integer(), nullable=False),
     sa.Column('tests_passed', sa.Integer(), nullable=False),
-    sa.Column('status', sa.Enum('PENDING', 'RUNNING', 'PASSED', 'FAILED', 'TIMEOUT', 'MEMORY_EXCEEDED', 'ERROR', name='evaluationstatus', native_enum=False), nullable=False),
+    sa.Column('status', sa.Enum('PASSED', 'FAILED', 'TIMEOUT', 'MEMORY_EXCEEDED', 'ERROR', name='evaluationstatus', native_enum=False), nullable=False),
     sa.Column('created_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('started_at', sa.DateTime(timezone=True), nullable=True),
     sa.PrimaryKeyConstraint('id')
     )
     op.create_index(op.f('ix_evaluations_submission_id'), 'evaluations', ['submission_id'], unique=False)
-    op.create_table('outbox_messages',
-    sa.Column('id', sa.UUID(), nullable=False),
-    sa.Column('event_type', sa.String(length=255), nullable=False),
-    sa.Column('payload', sa.JSON(), nullable=False),
-    sa.Column('occurred_at', sa.DateTime(timezone=True), nullable=False),
-    sa.Column('processed_at', sa.DateTime(timezone=True), nullable=True),
-    sa.PrimaryKeyConstraint('id')
-    )
-    op.create_index('idx_outbox_unprocessed', 'outbox_messages', ['processed_at', 'occurred_at'], unique=False)
-    op.create_index(op.f('ix_outbox_messages_processed_at'), 'outbox_messages', ['processed_at'], unique=False)
     op.create_table('test_cases',
     sa.Column('id', sa.UUID(), nullable=False),
     sa.Column('assignment_id', sa.UUID(), nullable=False),
@@ -57,12 +46,12 @@ def upgrade() -> None:
     sa.Column('input_data', sa.String(length=500), nullable=False),
     sa.Column('expected_output', sa.String(length=500), nullable=False),
     sa.Column('check_type', sa.Enum('EXACT_MATCH', 'IGNORE_WHITESPACE', 'LINE_BY_LINE', 'FLOAT_COMPARE', name='checktype', native_enum=False), nullable=False),
-    sa.Column('stdout', sa.String(length=500), nullable=True),
-    sa.Column('stderr', sa.String(length=500), nullable=True),
-    sa.Column('execution_time_ms', sa.Integer(), nullable=True),
-    sa.Column('exit_code', sa.Integer(), nullable=True),
-    sa.Column('is_timeout', sa.Boolean(), nullable=True),
-    sa.Column('is_memory_exceeded', sa.Boolean(), nullable=True),
+    sa.Column('stdout', sa.String(length=500), nullable=False),
+    sa.Column('stderr', sa.String(length=500), nullable=False),
+    sa.Column('execution_time_ms', sa.Integer(), nullable=False),
+    sa.Column('exit_code', sa.Integer(), nullable=False),
+    sa.Column('is_timeout', sa.Boolean(), nullable=False),
+    sa.Column('is_memory_exceeded', sa.Boolean(), nullable=False),
     sa.ForeignKeyConstraint(['evaluation_id'], ['evaluations.id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('id')
     )
@@ -77,9 +66,6 @@ def downgrade() -> None:
     op.drop_table('execution_cases')
     op.drop_index(op.f('ix_test_cases_assignment_id'), table_name='test_cases')
     op.drop_table('test_cases')
-    op.drop_index(op.f('ix_outbox_messages_processed_at'), table_name='outbox_messages')
-    op.drop_index('idx_outbox_unprocessed', table_name='outbox_messages')
-    op.drop_table('outbox_messages')
     op.drop_index(op.f('ix_evaluations_submission_id'), table_name='evaluations')
     op.drop_table('evaluations')
     # ### end Alembic commands ###

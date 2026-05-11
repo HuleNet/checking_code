@@ -1,11 +1,6 @@
 from sqlalchemy import inspect
 from sqlalchemy.orm import DeclarativeBase
 
-from checking_service.infrastructure.core import get_settings_cached
-
-
-MAX_STR_LENGTH = get_settings_cached().max_stdio_length
-
 
 class BaseModel(DeclarativeBase):
     def __repr__(self) -> str:

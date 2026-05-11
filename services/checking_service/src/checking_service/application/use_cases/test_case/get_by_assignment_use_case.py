@@ -1,8 +1,7 @@
 from uuid import UUID
 
+from checking_service.domain.entities import TestCase
 from checking_service.domain.errors import DomainError
-from checking_service.application.dto.test_case import TestCaseDTO
-from checking_service.application.dto.mappers import TestCaseMapper
 from checking_service.application.ports import UnitOfWork
 from checking_service.application.errors import (
     ApplicationError,
@@ -15,14 +14,14 @@ class GetTestCasesByAssignmentUseCase:
     def __init__(self, uow: UnitOfWork) -> None:
         self.uow = uow
 
-    async def execute(self, assignment_id: UUID) -> list[TestCaseDTO]:
+    async def execute(self, assignment_id: UUID) -> list[TestCase]:
         try:
             async with self.uow as uow:
-                domain_results = await uow.test_case_repo.get_by_assignment(
+                test_cases = await uow.test_case_repo.get_by_assignment(
                     assignment_id=assignment_id
                 )
 
-            return [TestCaseMapper.to_dto(domain=domain) for domain in domain_results]
+            return test_cases
 
         except DomainError as exc:
             raise ValidationError(

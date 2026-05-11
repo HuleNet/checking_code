@@ -18,8 +18,6 @@ class Settings(BaseSettings):
     broker_user: str
     broker_password: SecretStr
 
-    max_stdio_length: int
-    stuck_time_sec: int
     time_limit_sec: int
     memory_limit_mb: int
     run_cpu_limit: float

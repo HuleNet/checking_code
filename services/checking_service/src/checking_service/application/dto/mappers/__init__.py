@@ -4,12 +4,10 @@ from checking_service.application.dto.mappers.test_case_mapper import TestCaseMa
 from checking_service.application.dto.mappers.execution_case_mapper import (
     ExecutionCaseMapper,
 )
-from checking_service.application.dto.mappers.event_mapper import EventMapper
 
 __all__ = (
     "EvaluationMapper",
     "TestCaseMapper",
     "ExecutionCaseMapper",
     "DomainEnumsMapper",
-    "EventMapper",
 )

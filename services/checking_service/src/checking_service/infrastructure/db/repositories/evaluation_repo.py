@@ -1,11 +1,9 @@
 from uuid import UUID
-from datetime import datetime, timezone, timedelta
 
-from sqlalchemy import insert, select, update, delete, or_, and_
+from sqlalchemy import insert, select, delete
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from checking_service.domain.value_objects import EvaluationStatus
 from checking_service.domain.entities import Evaluation
 from checking_service.application.models.pagination import CursorPagination, Page
 from checking_service.application.ports.repositories import EvaluationRepository
@@ -22,15 +20,11 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
         self.session = session
         self.model = EvaluationORM
 
-    async def add(self, evaluation: Evaluation) -> Evaluation:
-        query = (
-            insert(self.model)
-            .values(**EvaluationMapper.to_dict(domain=evaluation))
-            .returning(self.model)
-        )
+    async def add(self, evaluation: Evaluation) -> None:
+        query = insert(self.model).values(**EvaluationMapper.to_dict(domain=evaluation))
 
         try:
-            orm_result = await self.session.execute(query)
+            await self.session.execute(query)
 
         except IntegrityError as exc:
             raise RepositoryIntegrityError(
@@ -51,9 +45,6 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
                     "id": evaluation.id,
                 },
             ) from exc
-
-        orm = orm_result.scalar_one()
-        return EvaluationMapper.to_domain(orm=orm)
 
     async def get(self, id: UUID) -> Evaluation | None:
         query = select(self.model).where(self.model.id == id)
@@ -137,111 +128,6 @@ class SQLAlchemyEvaluationRepository(EvaluationRepository):
             items=[EvaluationMapper.to_domain(orm=orm) for orm in orms],
             next_cursor=next_cursor,
         )
-
-    async def claim_for_run(
-        self, id: UUID, stuck_timeout_sec: int
-    ) -> Evaluation | None:
-        now = datetime.now(timezone.utc)
-        stuck_border = now - timedelta(seconds=stuck_timeout_sec)
-        query = (
-            update(self.model)
-            .where(
-                self.model.id == id,
-                or_(
-                    self.model.status == EvaluationStatus.PENDING,
-                    and_(
-                        self.model.status == EvaluationStatus.RUNNING,
-                        or_(
-                            self.model.started_at < stuck_border,
-                            self.model.started_at.is_(None),
-                        ),
-                    ),
-                ),
-            )
-            .values(
-                status=EvaluationStatus.RUNNING,
-                started_at=now,
-            )
-            .returning(self.model)
-        )
-
-        try:
-            orm_result = await self.session.execute(query)
-
-        except SQLAlchemyError as exc:
-            raise RepositoryInternalError(
-                message="Failed to claim Evaluation for run",
-                details={
-                    "entity": "evaluation",
-                    "operation": "claim_for_run",
-                    "id": id,
-                    "stuck_timeout_sec": stuck_timeout_sec,
-                },
-            ) from exc
-
-        orm = orm_result.scalar_one_or_none()
-
-        if orm is None:
-            return None
-
-        return EvaluationMapper.to_domain(orm=orm)
-
-    async def update(self, evaluation: Evaluation) -> Evaluation:
-        query = (
-            update(self.model)
-            .where(
-                self.model.id == evaluation.id,
-                self.model.status == EvaluationStatus.RUNNING,
-                self.model.started_at == evaluation.started_at,
-            )
-            .values(
-                status=evaluation.status,
-                tests_passed=evaluation.tests_passed,
-            )
-            .returning(self.model)
-        )
-
-        try:
-            orm_result = await self.session.execute(query)
-
-        except IntegrityError as exc:
-            raise RepositoryIntegrityError(
-                message="Failed to update Evaluation",
-                details={
-                    "entity": "evaluation",
-                    "operation": "update",
-                    "id": evaluation.id,
-                    "status": evaluation.status.value,
-                    "tests_passed": evaluation.tests_passed,
-                },
-            ) from exc
-
-        except SQLAlchemyError as exc:
-            raise RepositoryInternalError(
-                message="Failed to update Evaluation",
-                details={
-                    "entity": "evaluation",
-                    "operation": "update",
-                    "id": evaluation.id,
-                },
-            ) from exc
-
-        orm = orm_result.scalar_one_or_none()
-
-        if orm is None:
-            raise RepositoryIntegrityError(
-                message="Evaluation not found or invalid state",
-                details={
-                    "entity": "evaluation",
-                    "operation": "update",
-                    "id": evaluation.id,
-                    "expected_status": EvaluationStatus.RUNNING.value,
-                    "expected_started_at": evaluation.started_at,
-                    "reason": "stale_state_or_not_found",
-                },
-            )
-
-        return EvaluationMapper.to_domain(orm=orm)
 
     async def delete(self, id: UUID) -> Evaluation | None:
         query = delete(self.model).where(self.model.id == id).returning(self.model)

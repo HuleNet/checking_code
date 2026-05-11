@@ -16,20 +16,15 @@ celery_app.conf.update(
     task_acks_late=True,
     task_reject_on_worker_lost=True,
     worker_prefetch_multiplier=1,
+    task_soft_time_limit=10,
+    task_time_limit=15,
     task_routes={
         "run_evaluation": {
             "queue": "checking.evaluation.evaluate",
         },
-        "publish_outbox_events": {
-            "queue": "checking.outbox.publish",
-        },
     },
-    beat_schedule={
-        "publish-outbox-events": {
-            "task": "publish_outbox_events",
-            "schedule": 5.0,
-        },
-    },
+    task_track_started=True,
+    worker_max_tasks_per_child=100,
 )
 celery_app.autodiscover_tasks(
     [

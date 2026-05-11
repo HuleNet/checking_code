@@ -7,14 +7,10 @@ from checking_service.infrastructure.db.models.mappers.execution_case_mapper imp
 from checking_service.infrastructure.db.models.mappers.evaluation_mapper import (
     EvaluationMapper,
 )
-from checking_service.infrastructure.db.models.mappers.outbox_message_mapper import (
-    OutboxMessageMapper,
-)
 
 
 __all__ = (
     "TestCaseMapper",
     "ExecutionCaseMapper",
     "EvaluationMapper",
-    "OutboxMessageMapper",
 )

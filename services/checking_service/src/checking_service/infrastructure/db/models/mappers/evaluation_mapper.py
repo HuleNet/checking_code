@@ -14,7 +14,6 @@ class EvaluationMapper:
             tests_passed=orm.tests_passed,
             status=orm.status,
             created_at=orm.created_at,
-            started_at=orm.started_at,
         )
 
     @staticmethod
@@ -26,5 +25,4 @@ class EvaluationMapper:
             "tests_passed": domain.tests_passed,
             "status": domain.status,
             "created_at": domain.created_at,
-            "started_at": domain.started_at,
         }
