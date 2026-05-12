@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     broker_user: str
     broker_password: SecretStr
 
+    task_service_url: str
+
     time_limit_sec: int
     memory_limit_mb: int
     run_cpu_limit: float

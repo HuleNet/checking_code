@@ -8,10 +8,10 @@ from task_service.presentation.schemas.pagination import PageResponse
 from task_service.presentation.schemas.final_result import FinalResultResponse
 
 
-final_result_route = APIRouter(prefix="/final-results", tags=["Final Results"])
+final_result_router = APIRouter(prefix="/final-results", tags=["Final Results"])
 
 
-@final_result_route.get(
+@final_result_router.get(
     "/{id}",
     response_model=FinalResultResponse,
     status_code=status.HTTP_200_OK,
@@ -21,8 +21,8 @@ async def get_final_result(id: UUID) -> FinalResultResponse:
     return FinalResultResponse.model_validate(result)
 
 
-@final_result_route.get(
-    "/page",
+@final_result_router.get(
+    "group_assignment/{group_assignment}/page",
     response_model=PageResponse[FinalResultResponse],
     status_code=status.HTTP_200_OK,
 )
@@ -45,7 +45,7 @@ async def get_final_result_page(
     )
 
 
-@final_result_route.delete(
+@final_result_router.delete(
     "/{id}",
     response_model=FinalResultResponse,
     status_code=status.HTTP_200_OK,

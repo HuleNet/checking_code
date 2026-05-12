@@ -1,24 +1,12 @@
-from task_service.application.use_cases.workflows.process_submission import (
-    ProcessSubmissionUseCase,
-)
-from task_service.application.use_cases.workflows.poll_submission_result import (
-    PollSubmissionResultUseCase,
-)
-from task_service.application.use_cases.workflows.finalize_group_assignment import (
-    FinalizeGroupAssignmentUseCase,
+from task_service.application.use_cases.workflows.apply_submission_result_use_case import (
+    ApplySubmissionResultUseCase,
 )
 from task_service.application.use_cases.workflows.scan_expired_use_case import (
     ScanExpiredGroupAssignmentsUseCase,
 )
-from task_service.application.use_cases.workflows.publish_outbox_events_use_case import (
-    PublishOutboxEventsUseCase,
-)
 
 
 __all__ = (
-    "ProcessSubmissionUseCase",
-    "PollSubmissionResultUseCase",
-    "FinalizeGroupAssignmentUseCase",
+    "ApplySubmissionResultUseCase",
     "ScanExpiredGroupAssignmentsUseCase",
-    "PublishOutboxEventsUseCase",
 )

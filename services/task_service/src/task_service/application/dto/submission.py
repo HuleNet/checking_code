@@ -33,5 +33,6 @@ class CreateSubmissionDTO:
 @dataclass(frozen=True)
 class ApplySubmissionResultDTO:
     id: UUID
+    evaluation_id: UUID
     tests_passed: int
     tests_total: int

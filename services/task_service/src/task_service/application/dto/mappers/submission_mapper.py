@@ -12,7 +12,7 @@ class SubmissionMapper:
         dto: CreateSubmissionDTO, id: UUID, code_hash: CodeHash, attempt_number: int
     ) -> Submission:
         language = DomainEnumsMapper.map_language(language=dto.language)
-        return Submission.create(
+        return Submission(
             id=id,
             student_id=dto.student_id,
             assignment_id=dto.assignment_id,

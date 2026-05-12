@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID, ARRAY
 
 from task_service.domain.value_objects import Language, GroupAssignmentStatus
-from task_service.infrastructure.db.models.base_model import BaseModel
+from task_service.infrastructure.db.models import BaseModel
 
 
 class GroupAssignmentORM(BaseModel):

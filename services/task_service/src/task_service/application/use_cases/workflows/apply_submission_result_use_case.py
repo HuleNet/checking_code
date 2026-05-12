@@ -1,11 +1,9 @@
 from task_service.domain.value_objects import SubmissionStatus
 from task_service.domain.errors import DomainError
 from task_service.application.dto.submission import (
-    SubmissionDTO,
     ApplySubmissionResultDTO,
 )
-
-from task_service.application.dto.mappers import SubmissionMapper
+from task_service.application.use_cases.submission import FailSubmissionUseCase
 from task_service.application.ports import UnitOfWork
 from task_service.application.errors import (
     ApplicationError,
@@ -16,10 +14,15 @@ from task_service.application.errors import (
 
 
 class ApplySubmissionResultUseCase:
-    def __init__(self, uow: UnitOfWork) -> None:
+    def __init__(
+        self,
+        uow: UnitOfWork,
+        fail_submission: FailSubmissionUseCase,
+    ) -> None:
         self.uow = uow
+        self.fail_submission = fail_submission
 
-    async def execute(self, dto: ApplySubmissionResultDTO) -> SubmissionDTO:
+    async def execute(self, dto: ApplySubmissionResultDTO) -> None:
         try:
             async with self.uow as uow:
                 submission = await uow.submission_repo.get(id=dto.id)
@@ -34,24 +37,25 @@ class ApplySubmissionResultUseCase:
                     )
 
                 if submission.status != SubmissionStatus.PENDING:
-                    return SubmissionMapper.to_dto(domain=submission)
+                    return
 
                 submission.apply_result(
-                    tests_passed=dto.tests_passed, tests_total=dto.tests_total
+                    evaluation_id=dto.evaluation_id,
+                    tests_passed=dto.tests_passed,
+                    tests_total=dto.tests_total,
                 )
-                result_domain = await uow.submission_repo.update(submission=submission)
-                await uow.track(entity=result_domain)
+                await uow.submission_repo.update(submission=submission)
                 await uow.commit()
 
-            return SubmissionMapper.to_dto(domain=result_domain)
-
         except DomainError as exc:
+            await self.fail_submission.execute(id=dto.id)
             raise ValidationError(
                 message=exc.message,
                 details=exc.details,
             ) from exc
 
         except ApplicationError:
+            await self.fail_submission.execute(id=dto.id)
             raise
 
         except Exception as exc:

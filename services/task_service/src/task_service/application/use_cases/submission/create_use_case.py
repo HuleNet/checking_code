@@ -4,7 +4,7 @@ from task_service.domain.value_objects import CodeHash
 from task_service.domain.errors import DomainError
 from task_service.application.dto.submission import SubmissionDTO, CreateSubmissionDTO
 from task_service.application.dto.mappers import SubmissionMapper
-from task_service.application.ports import UnitOfWork
+from task_service.application.ports import UnitOfWork, CheckingService
 from task_service.application.errors import (
     ApplicationError,
     NotFoundError,
@@ -15,9 +15,15 @@ from task_service.application.errors import (
 
 
 class CreateSubmissionUseCase:
-    def __init__(self, uow: UnitOfWork, max_attempts: int) -> None:
+    def __init__(
+        self,
+        uow: UnitOfWork,
+        max_attempts: int,
+        checking_service: CheckingService,
+    ) -> None:
         self.uow = uow
         self.max_attempts = max_attempts
+        self.checking_service = checking_service
 
     async def execute(self, dto: CreateSubmissionDTO) -> SubmissionDTO:
         try:
@@ -70,9 +76,14 @@ class CreateSubmissionUseCase:
                 group_assignment.ensure_language_allowed(language=submission.language)
                 group_assignment.ensure_not_expired(now=submission.created_at)
                 domain_result = await uow.submission_repo.add(submission=submission)
-                await uow.track(entity=domain_result)
                 await uow.commit()
-
+                
+            await self.checking_service.create_evaluation(
+                submission_id=submission.id,
+                assignment_id=submission.assignment_id,
+                code=submission.code,
+                language=submission.language.value,
+            ) 
             return SubmissionMapper.to_dto(domain=domain_result)
 
         except DomainError as exc:

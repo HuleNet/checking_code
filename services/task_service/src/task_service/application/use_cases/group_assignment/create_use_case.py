@@ -9,6 +9,7 @@ from task_service.application.dto.mappers import GroupAssignmentMapper
 from task_service.application.ports import UnitOfWork
 from task_service.application.errors import (
     ApplicationError,
+    NotFoundError,
     InternalError,
     ValidationError,
 )
@@ -21,6 +22,17 @@ class CreateGroupAssignmentUseCase:
     async def execute(self, dto: CreateGroupAssignmentDTO) -> GroupAssignmentDTO:
         try:
             async with self.uow as uow:
+                assignment = await uow.assignment_repo.get(id=dto.assignment_id)
+                
+                if assignment is None:
+                    raise NotFoundError(
+                        message="Assignment not found",
+                        details={
+                            "entity": "assignment",
+                            "id": dto.assignment_id,
+                        },
+                    )
+                
                 group_assignment = GroupAssignmentMapper.to_domain(dto=dto, id=uuid4())
                 domain_result = await uow.group_assignment_repo.add(
                     group_assignment=group_assignment

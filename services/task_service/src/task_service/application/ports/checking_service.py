@@ -1,12 +1,12 @@
-from typing import Protocol
 from uuid import UUID
-
-from task_service.application.dto.evaluation import EvaluationDTO
+from typing import Protocol
 
 
 class CheckingService(Protocol):
-    async def start_evaluation(
-        self, submission_id: UUID, assignment_id: UUID, language: str, code: str
-    ) -> EvaluationDTO: ...
-
-    async def get_evaluation(self, evaluation_id: str) -> EvaluationDTO: ...
+    async def create_evaluation(
+        self,
+        submission_id: UUID,
+        assignment_id: UUID,
+        code: str,
+        language: str,
+    ) -> None: ...

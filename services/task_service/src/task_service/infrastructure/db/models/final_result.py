@@ -5,7 +5,7 @@ from sqlalchemy import Integer, DateTime, Float, Boolean, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
-from task_service.infrastructure.db.models.base_model import BaseModel
+from task_service.infrastructure.db.models import BaseModel
 
 
 class FinalResultORM(BaseModel):

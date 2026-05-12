@@ -28,7 +28,7 @@ from checking_service.application.use_cases.workflows import (
     PreviewRunEvaluationUseCase,
     RunEvaluationUseCase,
 )
-from checking_service.application.ports import UnitOfWork, Runner
+from checking_service.application.ports import UnitOfWork, Runner, TaskService
 from checking_service.infrastructure.core.settings import Settings
 
 
@@ -38,11 +38,13 @@ class UseCases:
         uow_factory: Callable[[], UnitOfWork],
         judge_service: JudgeService,
         runner: Runner,
+        task_service: TaskService,
         settings: Settings,
     ) -> None:
         self.uow_factory = uow_factory
         self.judge_service = judge_service
         self.runner = runner
+        self.task_service = task_service
         self.settings = settings
 
     @property
@@ -117,6 +119,7 @@ class UseCases:
     def run_evaluation(self) -> RunEvaluationUseCase:
         return RunEvaluationUseCase(
             uow=self.uow_factory(),
+            task_service=self.task_service,
             get_test_cases=self.get_test_cases_by_assignment,
             create_evaluation=self.create_evaluation,
             complete_evaluation=self.complete_evaluation,

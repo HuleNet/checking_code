@@ -7,23 +7,12 @@ from checking_service.infrastructure.bootstrap import container
 from checking_service.presentation.schemas.pagination import PageResponse
 from checking_service.presentation.schemas.evaluation import (
     EvaluationResponse,
-    StartEvaluationRequest,
     PreviewEvaluationResponse,
     PreviewStartEvaluationRequest,
 )
 
 
 evaluation_router = APIRouter(prefix="/evaluations", tags=["Evaluations"])
-
-
-@evaluation_router.post(
-    "/run",
-    response_model=EvaluationResponse,
-    status_code=status.HTTP_201_CREATED,
-)
-async def run_evaluation(payload: StartEvaluationRequest) -> EvaluationResponse:
-    result = await container.use_cases.run_evaluation.execute(dto=payload.to_dto())
-    return EvaluationResponse.model_validate(result)
 
 
 @evaluation_router.post(

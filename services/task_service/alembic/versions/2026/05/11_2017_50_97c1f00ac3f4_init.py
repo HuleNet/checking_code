@@ -1,8 +1,8 @@
 """init
 
-Revision ID: 0923de033b42
+Revision ID: 97c1f00ac3f4
 Revises:
-Create Date: 2026-05-10 16:51:34.937356
+Create Date: 2026-05-11 20:17:50.173726
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = "0923de033b42"
+revision: str = "97c1f00ac3f4"
 down_revision: Union[str, Sequence[str], None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -26,7 +26,7 @@ def upgrade() -> None:
         "assignments",
         sa.Column("id", sa.UUID(), nullable=False),
         sa.Column("title", sa.String(length=255), nullable=False),
-        sa.Column("description", sa.String(), nullable=False),
+        sa.Column("description", sa.String(length=2500), nullable=False),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
@@ -85,7 +85,6 @@ def upgrade() -> None:
             "status",
             sa.Enum(
                 "ACTIVE",
-                "FINALIZING",
                 "FINALIZED",
                 name="groupassignmentstatus",
                 native_enum=False,
@@ -99,21 +98,6 @@ def upgrade() -> None:
         op.f("ix_group_assignments_status"),
         "group_assignments",
         ["status"],
-        unique=False,
-    )
-    op.create_table(
-        "outbox_messages",
-        sa.Column("id", sa.UUID(), nullable=False),
-        sa.Column("event_type", sa.String(length=255), nullable=False),
-        sa.Column("payload", sa.JSON(), nullable=False),
-        sa.Column("occurred_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("processed_at", sa.DateTime(timezone=True), nullable=True),
-        sa.PrimaryKeyConstraint("id"),
-    )
-    op.create_index(
-        op.f("ix_outbox_messages_processed_at"),
-        "outbox_messages",
-        ["processed_at"],
         unique=False,
     )
     op.create_table(
@@ -134,7 +118,6 @@ def upgrade() -> None:
             "status",
             sa.Enum(
                 "PENDING",
-                "IN_PROGRESS",
                 "COMPLETED",
                 "FAILED",
                 name="submissionstatus",
@@ -197,8 +180,6 @@ def downgrade() -> None:
     op.drop_index(op.f("ix_submissions_assignment_id"), table_name="submissions")
     op.drop_index("idx_submission_student_assignment_attempt", table_name="submissions")
     op.drop_table("submissions")
-    op.drop_index(op.f("ix_outbox_messages_processed_at"), table_name="outbox_messages")
-    op.drop_table("outbox_messages")
     op.drop_index(op.f("ix_group_assignments_status"), table_name="group_assignments")
     op.drop_table("group_assignments")
     op.drop_index(op.f("ix_final_results_submission_id"), table_name="final_results")

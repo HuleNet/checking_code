@@ -62,18 +62,16 @@ class RunExecutionCasesUseCase:
                     is_memory_exceeded=(runner_result.is_memory_exceeded),
                 )
 
-                if len(seen_ids) != len(execution_cases):
-                    missing_ids = set(execution_case_map) - seen_ids
-                    raise ExecutionError(
-                        message="Missing ExecutionCase results",
-                        details={
-                            "missing_execution_case_ids": [
-                                str(id_) for id_ in missing_ids
-                            ],
-                            "expected_count": len(execution_cases),
-                            "actual_count": len(seen_ids),
-                        },
-                    )
+            if len(seen_ids) != len(execution_cases):
+                missing_ids = set(execution_case_map) - seen_ids
+                raise ExecutionError(
+                    message="Missing ExecutionCase results",
+                    details={
+                        "missing_execution_case_ids": [str(id_) for id_ in missing_ids],
+                        "expected_count": len(execution_cases),
+                        "actual_count": len(seen_ids),
+                    },
+                )
 
             return execution_cases
 

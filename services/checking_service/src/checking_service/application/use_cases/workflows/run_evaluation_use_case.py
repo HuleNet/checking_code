@@ -13,7 +13,7 @@ from checking_service.application.use_cases.execution_case import (
     CreateExecutionCasesUseCase,
     RunExecutionCasesUseCase,
 )
-from checking_service.application.ports import UnitOfWork
+from checking_service.application.ports import UnitOfWork, TaskService
 from checking_service.application.errors import (
     ApplicationError,
     ValidationError,
@@ -25,6 +25,7 @@ class RunEvaluationUseCase:
     def __init__(
         self,
         uow: UnitOfWork,
+        task_service: TaskService,
         get_test_cases: GetTestCasesByAssignmentUseCase,
         create_evaluation: CreateEvaluationUseCase,
         complete_evaluation: CompleteEvaluationUseCase,
@@ -32,6 +33,7 @@ class RunEvaluationUseCase:
         run_execution_cases: RunExecutionCasesUseCase,
     ) -> None:
         self.uow = uow
+        self.task_service = task_service
         self.get_test_cases = get_test_cases
         self.create_evaluation = create_evaluation
         self.complete_evaluation = complete_evaluation
@@ -64,6 +66,7 @@ class RunEvaluationUseCase:
                 )
                 await uow.commit()
 
+            await self.task_service.complete_submission(dto=evaluation_dto)
             return evaluation_dto
 
         except DomainError as exc:

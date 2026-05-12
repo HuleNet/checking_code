@@ -10,9 +10,6 @@ from task_service.infrastructure.db.models.mappers.submission_mapper import (
 from task_service.infrastructure.db.models.mappers.final_result_mapper import (
     FinalResultMapper,
 )
-from task_service.infrastructure.db.models.mappers.outbox_message_mapper import (
-    OutboxMessageMapper,
-)
 
 
 __all__ = (
@@ -20,5 +17,4 @@ __all__ = (
     "GroupAssignmentMapper",
     "SubmissionMapper",
     "FinalResultMapper",
-    "OutboxMessageMapper",
 )

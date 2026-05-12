@@ -66,11 +66,11 @@ services:
       context: ./services/task_service
     container_name: task_worker
     command: >
-      uv run celery
-      -A task_service.infrastructure.broker.celery_app
-      worker
-      --loglevel=info
-      -Q task.submission.check,task.group_assignment.finalize,task.outbox.publish
+      uv run taskiq worker
+      task_service.presentation.tasks.worker:broker
+      task_service.presentation.tasks.worker    
+      --log-level INFO
+      --workers 1
     env_file:
       - ./services/task_service/.env
     depends_on:
@@ -84,54 +84,35 @@ services:
       context: ./services/checking_service
     container_name: checking_worker
     command: >
-      uv run celery
-      -A checking_service.infrastructure.broker.celery_app
-      worker
-      --loglevel=info
-      -Q checking.evaluation.evaluate,checking.outbox.publish
+      uv run taskiq worker
+      checking_service.presentation.tasks.worker:broker
+      checking_service.presentation.tasks.worker   
+      --log-level INFO
+      --workers 1
     env_file:
       - ./services/checking_service/.env
     depends_on:
       rabbitmq:
         condition: service_healthy
       postgres:
-        condition: service_healthy
+        condition: service_healthy  
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock      
 
-  task_beat:
+  task_scheduler:
     build:
       context: ./services/task_service
-    container_name: task_beat
+    container_name: task_scheduler
     command: >
-      uv run celery
-      -A task_service.infrastructure.broker.celery_app
-      beat
-      --loglevel=info
+      uv run taskiq scheduler task_service.presentation.tasks.worker:scheduler
+      --log-level INFO
     env_file:
       - ./services/task_service/.env
     depends_on:
       rabbitmq:
         condition: service_healthy
       postgres:
-        condition: service_healthy   
-
-  checking_beat:
-    build:
-      context: ./services/checking_service
-    container_name: checking_beat
-    command: >
-      uv run celery
-      -A checking_service.infrastructure.broker.celery_app
-      beat
-      --loglevel=info
-    env_file:
-      - ./services/checking_service/.env
-    depends_on:
-      rabbitmq:
-        condition: service_healthy
-      postgres:
-        condition: service_healthy              
+        condition: service_healthy           
 
 volumes:
   postgres_data:
