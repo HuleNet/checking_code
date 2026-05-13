@@ -1,9 +1,4 @@
-from checking_service.infrastructure.broker.celery_app import celery_app
-from checking_service.infrastructure.broker.task_dispatcher import CeleryTaskDispatcher
+from checking_service.infrastructure.broker.aio_pika_broker import broker
 
 
-__all__ = (
-    "celery_app",
-    "publisher",
-    "CeleryTaskDispatcher",
-)
+__all__ = ("broker",)

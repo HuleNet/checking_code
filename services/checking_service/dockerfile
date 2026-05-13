@@ -1,42 +1,24 @@
-FROM python:3.13-slim AS base
-
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-WORKDIR /app
+FROM python:3.13-slim
 
 RUN apt-get update && apt-get install -y \
-    gcc \
-    libpq-dev \
-    postgresql-client \
+    build-essential \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
+RUN pip install --no-cache-dir uv
 
-RUN pip install uv
-
-
-FROM base AS builder
+WORKDIR /app
 
 COPY pyproject.toml uv.lock ./
 
-RUN uv sync --frozen
-
-FROM base AS runtime
-
-COPY --from=builder /app/.venv /app/.venv
-
-ENV PATH="/app/.venv/bin:$PATH"
-ENV PYTHONPATH="/app/src"
+RUN uv sync --frozen --no-install-project
 
 COPY src ./src
 COPY alembic ./alembic
-COPY alembic.ini .
-COPY .env .
-COPY docker ./docker
+COPY alembic.ini ./
 
-RUN chmod +x docker/*.sh
+ENV PYTHONPATH=/app/src
 
-ENTRYPOINT ["./docker/entrypoint.sh"]
+EXPOSE 8000
 
-CMD ["uvicorn", "checking_service.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uv", "run", "python", "-m", "checking_service.main"]

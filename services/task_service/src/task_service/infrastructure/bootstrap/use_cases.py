@@ -21,9 +21,6 @@ from task_service.application.use_cases.submission import (
     GetSubmissionsByGroupAssignmentUseCase,
     GetSubmissionPageUseCase,
     DeleteSubmissionUseCase,
-    StartSubmissionProcessingUseCase,
-    SetSubmissionEvaluationUseCase,
-    ApplySubmissionResultUseCase,
     FailSubmissionUseCase,
 )
 from task_service.application.use_cases.final_result import (
@@ -34,13 +31,10 @@ from task_service.application.use_cases.final_result import (
     DeleteFinalResultUseCase,
 )
 from task_service.application.use_cases.workflows import (
-    ProcessSubmissionUseCase,
-    PollSubmissionResultUseCase,
-    FinalizeGroupAssignmentUseCase,
+    ApplySubmissionResultUseCase,
     ScanExpiredGroupAssignmentsUseCase,
-    PublishOutboxEventsUseCase,
 )
-from task_service.application.ports import UnitOfWork, CheckingService, TaskDispatcher
+from task_service.application.ports import UnitOfWork, CheckingService
 from task_service.infrastructure.core.settings import Settings
 
 
@@ -50,13 +44,11 @@ class UseCases:
         uow_factory: Callable[[], UnitOfWork],
         scoring_service: ScoringService,
         checking_service: CheckingService,
-        task_dispatcher: TaskDispatcher,
         settings: Settings,
     ) -> None:
         self.uow_factory = uow_factory
         self.scoring_service = scoring_service
         self.checking_service = checking_service
-        self.task_dispatcher = task_dispatcher
         self.settings = settings
 
     @property
@@ -104,6 +96,7 @@ class UseCases:
         return CreateSubmissionUseCase(
             uow=self.uow_factory(),
             max_attempts=self.settings.max_attempts,
+            checking_service=self.checking_service,
         )
 
     @property
@@ -123,18 +116,6 @@ class UseCases:
     @property
     def delete_submission(self) -> DeleteSubmissionUseCase:
         return DeleteSubmissionUseCase(uow=self.uow_factory())
-
-    @property
-    def start_submission(self) -> StartSubmissionProcessingUseCase:
-        return StartSubmissionProcessingUseCase(uow=self.uow_factory())
-
-    @property
-    def set_submission_evaluation(self) -> SetSubmissionEvaluationUseCase:
-        return SetSubmissionEvaluationUseCase(uow=self.uow_factory())
-
-    @property
-    def apply_submission_result(self) -> ApplySubmissionResultUseCase:
-        return ApplySubmissionResultUseCase(uow=self.uow_factory())
 
     @property
     def fail_submission(self) -> FailSubmissionUseCase:
@@ -165,40 +146,13 @@ class UseCases:
         return DeleteFinalResultUseCase(uow=self.uow_factory())
 
     @property
-    def process_submission(self) -> ProcessSubmissionUseCase:
-        return ProcessSubmissionUseCase(
-            checking_service=self.checking_service,
-            task_dispatcher=self.task_dispatcher,
-            get_submission=self.get_submission,
-            start_submission_processing=self.start_submission,
-            set_submission_evaluation=self.set_submission_evaluation,
-            fail_submission=self.fail_submission,
-        )
-
-    @property
-    def poll_submission_result(self) -> PollSubmissionResultUseCase:
-        return PollSubmissionResultUseCase(
-            checking_service=self.checking_service,
-            task_dispatcher=self.task_dispatcher,
-            get_submission=self.get_submission,
-            apply_submission_result=self.apply_submission_result,
-            fail_submission=self.fail_submission,
-        )
-
-    @property
-    def finalize_group_assignment(self) -> FinalizeGroupAssignmentUseCase:
-        return FinalizeGroupAssignmentUseCase(
-            uow=self.uow_factory(), create_final_results=self.create_final_results
+    def apply_submission_result(self) -> ApplySubmissionResultUseCase:
+        return ApplySubmissionResultUseCase(
+            uow=self.uow_factory(), fail_submission=self.fail_submission
         )
 
     @property
     def scan_expired_group_assignments(self) -> ScanExpiredGroupAssignmentsUseCase:
         return ScanExpiredGroupAssignmentsUseCase(
-            uow=self.uow_factory(), task_dispatcher=self.task_dispatcher
-        )
-
-    @property
-    def publish_outbox_events(self) -> PublishOutboxEventsUseCase:
-        return PublishOutboxEventsUseCase(
-            uow=self.uow_factory(), task_dispatcher=self.task_dispatcher
+            uow=self.uow_factory(), create_final_results=self.create_final_results
         )

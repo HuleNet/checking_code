@@ -43,7 +43,6 @@ class EvaluationResponse(BaseSchema):
     tests_passed: int
     status: str
     created_at: datetime
-    started_at: datetime | None
 
 
 class PreviewEvaluationResponse(BaseSchema):

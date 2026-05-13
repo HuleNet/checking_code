@@ -11,12 +11,12 @@ from task_service.presentation.schemas.group_assignment import (
 )
 
 
-group_assignment_route = APIRouter(
-    prefix="group-assignments", tags=["Group Assignments"]
+group_assignment_router = APIRouter(
+    prefix="/group-assignments", tags=["Group Assignments"]
 )
 
 
-@group_assignment_route.post(
+@group_assignment_router.post(
     "/",
     response_model=GroupAssignmentResponse,
     status_code=status.HTTP_201_CREATED,
@@ -30,7 +30,7 @@ async def create_group_assignment(
     return GroupAssignmentResponse.model_validate(result)
 
 
-@group_assignment_route.get(
+@group_assignment_router.get(
     "/{id}",
     response_model=GroupAssignmentResponse,
     status_code=status.HTTP_200_OK,
@@ -40,8 +40,8 @@ async def get_group_assignment(id: UUID) -> GroupAssignmentResponse:
     return GroupAssignmentResponse.model_validate(result)
 
 
-@group_assignment_route.get(
-    "/page",
+@group_assignment_router.get(
+    "group/{group_id}/page",
     response_model=PageResponse[GroupAssignmentResponse],
     status_code=status.HTTP_200_OK,
 )
@@ -66,7 +66,7 @@ async def get_group_assignment_page(
     )
 
 
-@group_assignment_route.delete(
+@group_assignment_router.delete(
     "/{id}",
     response_model=GroupAssignmentResponse,
     status_code=status.HTTP_200_OK,

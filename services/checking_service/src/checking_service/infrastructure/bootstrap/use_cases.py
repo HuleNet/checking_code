@@ -10,23 +10,25 @@ from checking_service.application.use_cases.test_case import (
     DeleteTestCaseUseCase,
 )
 from checking_service.application.use_cases.evaluation import (
+    CreateEvaluationUseCase,
+    CompleteEvaluationUseCase,
     GetEvaluationUseCase,
     GetEvaluationsBySubmissionUseCase,
     GetEvaluationPageUseCase,
     DeleteEvaluationUseCase,
 )
 from checking_service.application.use_cases.execution_case import (
+    CreateExecutionCasesUseCase,
+    RunExecutionCasesUseCase,
     GetExecutionCaseUseCase,
     GetExecutionCasesByEvaluationUseCase,
     GetExecutionCasePageUseCase,
 )
 from checking_service.application.use_cases.workflows import (
-    CreateEvaluationUseCase,
-    RunEvaluationUseCase,
     PreviewRunEvaluationUseCase,
-    PublishOutboxEventsUseCase,
+    RunEvaluationUseCase,
 )
-from checking_service.application.ports import UnitOfWork, TaskDispatcher, Runner
+from checking_service.application.ports import UnitOfWork, Runner, TaskService
 from checking_service.infrastructure.core.settings import Settings
 
 
@@ -36,13 +38,13 @@ class UseCases:
         uow_factory: Callable[[], UnitOfWork],
         judge_service: JudgeService,
         runner: Runner,
-        task_dispatcher: TaskDispatcher,
+        task_service: TaskService,
         settings: Settings,
     ) -> None:
         self.uow_factory = uow_factory
         self.judge_service = judge_service
         self.runner = runner
-        self.task_dispatcher = task_dispatcher
+        self.task_service = task_service
         self.settings = settings
 
     @property
@@ -70,6 +72,14 @@ class UseCases:
         return DeleteTestCaseUseCase(uow=self.uow_factory())
 
     @property
+    def create_evaluation(self) -> CreateEvaluationUseCase:
+        return CreateEvaluationUseCase()
+
+    @property
+    def complete_evaluation(self) -> CompleteEvaluationUseCase:
+        return CompleteEvaluationUseCase(judge=self.judge_service)
+
+    @property
     def get_evaluation(self) -> GetEvaluationUseCase:
         return GetEvaluationUseCase(uow=self.uow_factory())
 
@@ -86,6 +96,14 @@ class UseCases:
         return DeleteEvaluationUseCase(uow=self.uow_factory())
 
     @property
+    def create_execution_cases(self) -> CreateExecutionCasesUseCase:
+        return CreateExecutionCasesUseCase()
+
+    @property
+    def run_execution_cases(self) -> RunExecutionCasesUseCase:
+        return RunExecutionCasesUseCase(runner=self.runner)
+
+    @property
     def get_execution_case(self) -> GetExecutionCaseUseCase:
         return GetExecutionCaseUseCase(uow=self.uow_factory())
 
@@ -98,30 +116,23 @@ class UseCases:
         return GetExecutionCasePageUseCase(uow=self.uow_factory())
 
     @property
-    def create_evaluation(self) -> CreateEvaluationUseCase:
-        return CreateEvaluationUseCase(
-            uow=self.uow_factory(), get_test_cases=self.get_test_cases_by_assignment
-        )
-
-    @property
     def run_evaluation(self) -> RunEvaluationUseCase:
         return RunEvaluationUseCase(
             uow=self.uow_factory(),
-            judge=self.judge_service,
-            runner=self.runner,
-            stuck_timeout_sec=self.settings.stuck_time_sec,
+            task_service=self.task_service,
+            get_test_cases=self.get_test_cases_by_assignment,
+            create_evaluation=self.create_evaluation,
+            complete_evaluation=self.complete_evaluation,
+            create_execution_cases=self.create_execution_cases,
+            run_execution_cases=self.run_execution_cases,
         )
 
     @property
     def preview_run_evaluation(self) -> PreviewRunEvaluationUseCase:
         return PreviewRunEvaluationUseCase(
-            judge=self.judge_service,
-            runner=self.runner,
             get_test_cases=self.get_test_cases_by_assignment,
-        )
-
-    @property
-    def publish_outbox_events(self) -> PublishOutboxEventsUseCase:
-        return PublishOutboxEventsUseCase(
-            uow=self.uow_factory(), task_dispatcher=self.task_dispatcher
+            create_evaluation=self.create_evaluation,
+            complete_evaluation=self.complete_evaluation,
+            create_execution_cases=self.create_execution_cases,
+            run_execution_cases=self.run_execution_cases,
         )

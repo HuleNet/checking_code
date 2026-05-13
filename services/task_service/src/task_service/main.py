@@ -1,7 +1,28 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
+from uvicorn import run
 
-from task_service.presentation.api.routes import main_router
+from task_service.infrastructure.broker import broker
+from task_service.presentation.api import main_router, register_exception_handlers
 
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await broker.startup()
+    yield
+    await broker.shutdown()
+
+
+app = FastAPI(lifespan=lifespan)
 app.include_router(router=main_router)
+register_exception_handlers(app=app)
+
+
+if __name__ == "__main__":
+    run(
+        "task_service.main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=False,
+    )

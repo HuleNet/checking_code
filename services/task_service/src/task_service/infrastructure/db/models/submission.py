@@ -6,7 +6,7 @@ from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 from task_service.domain.value_objects import Language, SubmissionStatus
-from task_service.infrastructure.db.models.base_model import BaseModel, MAX_CODE_LENGTH
+from task_service.infrastructure.db.models import BaseModel
 
 
 class SubmissionORM(BaseModel):
@@ -43,7 +43,7 @@ class SubmissionORM(BaseModel):
     language: Mapped[Language] = mapped_column(
         Enum(Language, native_enum=False), nullable=False
     )
-    code: Mapped[str] = mapped_column(String(MAX_CODE_LENGTH), nullable=False)
+    code: Mapped[str] = mapped_column(String(5000), nullable=False)
     code_hash: Mapped[str] = mapped_column(String(128), nullable=False)
     attempt_number: Mapped[int] = mapped_column(Integer, nullable=False)
     status: Mapped[SubmissionStatus] = mapped_column(

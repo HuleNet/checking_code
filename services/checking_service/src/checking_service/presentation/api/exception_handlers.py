@@ -1,6 +1,7 @@
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.encoders import jsonable_encoder
 
 from checking_service.application.errors import (
     ApplicationError,
@@ -44,7 +45,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     ) -> JSONResponse:
         return JSONResponse(
             status_code=_resolve_status_code(exc=exc),
-            content=_build_error_response(exc=exc),
+            content=jsonable_encoder(_build_error_response(exc)),
         )
 
     @app.exception_handler(Exception)

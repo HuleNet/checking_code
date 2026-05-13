@@ -24,7 +24,6 @@ class SubmissionResponse(BaseSchema):
 
 class CreateSubmissionRequest(BaseSchema):
     student_id: UUID
-    assignment_id: UUID
     group_assignment_id: UUID
     language: str
     code: str
@@ -32,7 +31,6 @@ class CreateSubmissionRequest(BaseSchema):
     def to_dto(self) -> CreateSubmissionDTO:
         return CreateSubmissionDTO(
             student_id=self.student_id,
-            assignment_id=self.assignment_id,
             group_assignment_id=self.group_assignment_id,
             language=self.language,
             code=self.code,

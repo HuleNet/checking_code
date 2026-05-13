@@ -24,7 +24,6 @@ class SubmissionDTO:
 @dataclass(frozen=True)
 class CreateSubmissionDTO:
     student_id: UUID
-    assignment_id: UUID
     group_assignment_id: UUID
     language: str
     code: str
@@ -33,5 +32,6 @@ class CreateSubmissionDTO:
 @dataclass(frozen=True)
 class ApplySubmissionResultDTO:
     id: UUID
+    evaluation_id: UUID
     tests_passed: int
     tests_total: int

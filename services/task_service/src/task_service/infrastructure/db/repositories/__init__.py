@@ -10,9 +10,6 @@ from task_service.infrastructure.db.repositories.submission_repo import (
 from task_service.infrastructure.db.repositories.final_result_repo import (
     SQLAlchemyFinalResultRepository,
 )
-from task_service.infrastructure.db.repositories.outbox_repo import (
-    SQLAlchemyOutboxRepository,
-)
 
 
 __all__ = (
@@ -20,5 +17,4 @@ __all__ = (
     "SQLAlchemyGroupAssignmentRepository",
     "SQLAlchemySubmissionRepository",
     "SQLAlchemyFinalResultRepository",
-    "SQLAlchemyOutboxRepository",
 )

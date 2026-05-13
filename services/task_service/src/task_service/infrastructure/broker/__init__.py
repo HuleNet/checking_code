@@ -1,8 +1,8 @@
-from task_service.infrastructure.broker.celery_app import celery_app
-from task_service.infrastructure.broker.task_dispatcher import CeleryTaskDispatcher
+from task_service.infrastructure.broker.aio_pika_broker import broker
+from task_service.infrastructure.broker.scheduler import scheduler
 
 
 __all__ = (
-    "celery_app",
-    "CeleryTaskDispatcher",
+    "broker",
+    "scheduler",
 )

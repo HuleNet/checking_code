@@ -7,7 +7,7 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
 from checking_service.domain.value_objects import EvaluationStatus
-from checking_service.infrastructure.db.models.base_model import BaseModel
+from checking_service.infrastructure.db.models import BaseModel
 
 if TYPE_CHECKING:
     from checking_service.infrastructure.db.models import ExecutionCaseORM
@@ -27,9 +27,6 @@ class EvaluationORM(BaseModel):
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), nullable=False
-    )
-    started_at: Mapped[datetime | None] = mapped_column(
-        DateTime(timezone=True), nullable=True
     )
 
     execution_cases: Mapped[list["ExecutionCaseORM"]] = relationship(

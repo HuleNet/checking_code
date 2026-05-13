@@ -1,19 +1,19 @@
-from uuid import UUID
-
+from checking_service.domain.value_objects import EvaluationStatus
 from checking_service.domain.entities import Evaluation
-from checking_service.application.dto.evaluation import (
-    EvaluationDTO,
-    CreateEvaluationDTO,
-)
+from checking_service.application.dto.evaluation import EvaluationDTO
+from checking_service.application.dto.mappers import DomainEnumsMapper
 
 
 class EvaluationMapper:
     @staticmethod
-    def to_domain(dto: CreateEvaluationDTO, id: UUID) -> Evaluation:
-        return Evaluation.create(
-            id=id,
+    def to_domain(dto: EvaluationDTO) -> Evaluation:
+        return Evaluation(
+            id=dto.id,
             submission_id=dto.submission_id,
             tests_total=dto.tests_total,
+            tests_passed=dto.tests_passed,
+            status=DomainEnumsMapper.map_evaluation_status(dto.status),
+            created_at=dto.created_at,
         )
 
     @staticmethod
@@ -23,7 +23,8 @@ class EvaluationMapper:
             submission_id=domain.submission_id,
             tests_total=domain.tests_total,
             tests_passed=domain.tests_passed,
-            status=domain.status.value,
+            status=domain.status.value
+            if domain.status is not None
+            else EvaluationStatus.ERROR,
             created_at=domain.created_at,
-            started_at=domain.started_at,
         )

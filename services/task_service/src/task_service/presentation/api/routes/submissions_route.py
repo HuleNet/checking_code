@@ -11,10 +11,10 @@ from task_service.presentation.schemas.submission import (
 )
 
 
-submission_route = APIRouter(prefix="submissions", tags=["Submissions"])
+submission_router = APIRouter(prefix="/submissions", tags=["Submissions"])
 
 
-@submission_route.post(
+@submission_router.post(
     "/",
     response_model=SubmissionResponse,
     status_code=status.HTTP_201_CREATED,
@@ -26,7 +26,7 @@ async def create_submission(
     return SubmissionResponse.model_validate(result)
 
 
-@submission_route.get(
+@submission_router.get(
     "/{id}",
     response_model=SubmissionResponse,
     status_code=status.HTTP_200_OK,
@@ -36,8 +36,8 @@ async def get_submission(id: UUID) -> SubmissionResponse:
     return SubmissionResponse.model_validate(result)
 
 
-@submission_route.get(
-    "/page",
+@submission_router.get(
+    "group-assignment/{group_assignment_id}/page",
     response_model=PageResponse[SubmissionResponse],
     status_code=status.HTTP_200_OK,
 )
@@ -60,7 +60,7 @@ async def get_submission_page(
     )
 
 
-@submission_route.delete(
+@submission_router.delete(
     "/{id}",
     response_model=SubmissionResponse,
     status_code=status.HTTP_200_OK,

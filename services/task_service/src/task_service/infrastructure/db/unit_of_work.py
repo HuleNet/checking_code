@@ -1,17 +1,11 @@
-from typing import Any
-
 from sqlalchemy.ext.asyncio import async_sessionmaker, AsyncSession
 
-from task_service.domain.events import DomainEvent
-from task_service.application.models.outbox import OutboxMessage
-from task_service.application.dto.mappers import EventMapper
 from task_service.application.ports import UnitOfWork
 from task_service.infrastructure.db.repositories import (
     SQLAlchemyAssignmentRepository,
     SQLAlchemyGroupAssignmentRepository,
     SQLAlchemySubmissionRepository,
     SQLAlchemyFinalResultRepository,
-    SQLAlchemyOutboxRepository,
 )
 from task_service.infrastructure.errors import RepositoryInternalError
 
@@ -32,7 +26,6 @@ class SQLAlchemyUnitOfWork(UnitOfWork):
         )
         self.submission_repo = SQLAlchemySubmissionRepository(session=self.session)
         self.final_result_repo = SQLAlchemyFinalResultRepository(session=self.session)
-        self.outbox_repo = SQLAlchemyOutboxRepository(session=self.session)
         return self
 
     async def __aexit__(self, exc_type, exc, tb) -> None:
@@ -67,33 +60,3 @@ class SQLAlchemyUnitOfWork(UnitOfWork):
             )
 
         await self.session.rollback()
-
-    async def track(self, entity: Any) -> None:
-        if self.session is None:
-            raise RepositoryInternalError(
-                message="Session is not initialized",
-                details={
-                    "entity": "unit_of_work",
-                    "operation": "track",
-                },
-            )
-
-        pull_events = getattr(entity, "pull_events", None)
-
-        if pull_events is None:
-            return
-
-        events: list[DomainEvent] = pull_events()
-
-        if not events:
-            return
-
-        for event in events:
-            outbox_message = OutboxMessage(
-                id=event.id,
-                event_type=event.__class__.__name__,
-                payload=EventMapper.serialize_event(event=event),
-                occurred_at=event.occurred_at,
-            )
-
-            await self.outbox_repo.add(message=outbox_message)

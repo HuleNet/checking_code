@@ -5,12 +5,14 @@ from checking_service.presentation.api.routes.evaluations_route import evaluatio
 from checking_service.presentation.api.routes.execution_cases_route import (
     execution_case_router,
 )
+from checking_service.presentation.api.routes.internal_route import internal_router
 
 
 main_router = APIRouter(prefix="/api/v1")
 main_router.include_router(router=test_case_router)
 main_router.include_router(router=evaluation_router)
 main_router.include_router(router=execution_case_router)
+main_router.include_router(router=internal_router)
 
 
 __all__ = ("main_router",)

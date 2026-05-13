@@ -12,10 +12,10 @@ from task_service.presentation.schemas.assignment import (
 )
 
 
-assignment_route = APIRouter(prefix="assignments", tags=["Assignments"])
+assignment_router = APIRouter(prefix="/assignments", tags=["Assignments"])
 
 
-@assignment_route.post(
+@assignment_router.post(
     "/",
     response_model=AssignmentResponse,
     status_code=status.HTTP_201_CREATED,
@@ -25,17 +25,7 @@ async def create_assignment(payload: CreateAssignmentRequest) -> AssignmentRespo
     return AssignmentResponse.model_validate(result)
 
 
-@assignment_route.get(
-    "/{id}",
-    response_model=AssignmentResponse,
-    status_code=status.HTTP_200_OK,
-)
-async def get_assignment(id: UUID) -> AssignmentResponse:
-    result = await container.use_cases.get_assignment.execute(id=id)
-    return AssignmentResponse.model_validate(result)
-
-
-@assignment_route.get(
+@assignment_router.get(
     "/page",
     response_model=PageResponse[AssignmentResponse],
     status_code=status.HTTP_200_OK,
@@ -57,7 +47,17 @@ async def get_assignment_page(
     )
 
 
-@assignment_route.patch(
+@assignment_router.get(
+    "/{id}",
+    response_model=AssignmentResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_assignment(id: UUID) -> AssignmentResponse:
+    result = await container.use_cases.get_assignment.execute(id=id)
+    return AssignmentResponse.model_validate(result)
+
+
+@assignment_router.patch(
     "/{id}",
     response_model=AssignmentResponse,
     status_code=status.HTTP_200_OK,
@@ -71,7 +71,7 @@ async def update_assignment(
     return AssignmentResponse.model_validate(result)
 
 
-@assignment_route.delete(
+@assignment_router.delete(
     "/{id}",
     response_model=AssignmentResponse,
     status_code=status.HTTP_200_OK,

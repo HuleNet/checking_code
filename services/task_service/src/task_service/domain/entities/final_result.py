@@ -31,7 +31,7 @@ class FinalResult:
                     "attempt_number": self.attempt_number,
                 },
             )
-        if not (0 < self.score < 100):
+        if not (0 <= self.score <= 100):
             raise InvariantViolationError(
                 message="Score must be in 0 to 100 interval",
                 details={
@@ -60,7 +60,7 @@ class FinalResult:
                 },
             )
 
-        if not (0 < self.plagiarism_score < 1):
+        if not (0 <= self.plagiarism_score <= 1):
             raise InvariantViolationError(
                 message="Plagiarism score must be in 0 to 1 interval",
                 details={

@@ -1,11 +1,6 @@
 from sqlalchemy import inspect
 from sqlalchemy.orm import DeclarativeBase
 
-from task_service.infrastructure.core import get_settings_cached
-
-
-MAX_CODE_LENGTH = get_settings_cached().max_code_length
-
 
 class BaseModel(DeclarativeBase):
     def __repr__(self) -> str:

@@ -16,14 +16,8 @@ class GroupAssignment:
     status: GroupAssignmentStatus = GroupAssignmentStatus.ACTIVE
     finalized_at: datetime | None = None
 
-    def start_finalizing(self) -> None:
-        if self.status != GroupAssignmentStatus.ACTIVE:
-            return
-
-        self.status = GroupAssignmentStatus.FINALIZING
-
     def finalize(self) -> None:
-        if self.status != GroupAssignmentStatus.FINALIZING:
+        if self.status != GroupAssignmentStatus.ACTIVE:
             return
 
         self.status = GroupAssignmentStatus.FINALIZED

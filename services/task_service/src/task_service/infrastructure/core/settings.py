@@ -20,7 +20,6 @@ class Settings(BaseSettings):
 
     checking_service_url: str
 
-    max_code_length: int
     max_attempts: int
     penalty_cap: int
 

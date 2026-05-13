@@ -3,13 +3,6 @@ from uuid import UUID
 from datetime import datetime, timezone
 
 from task_service.domain.value_objects import SubmissionStatus, Language, CodeHash
-from task_service.domain.events import (
-    DomainEvent,
-    SubmissionCreatedEvent,
-    SubmissionProcessingStartedEvent,
-    SubmissionCompletedEvent,
-    SubmissionFailedEvent,
-)
 from task_service.domain.errors import (
     InvariantViolationError,
     BusinessRuleViolationError,
@@ -33,72 +26,15 @@ class Submission:
     checked_at: datetime | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
-    _events: list[DomainEvent] = field(default_factory=list, init=False, repr=False)
-
-    @classmethod
-    def create(
-        cls,
-        id: UUID,
-        student_id: UUID,
-        assignment_id: UUID,
-        group_assignment_id: UUID,
-        language: Language,
-        code: str,
-        code_hash: CodeHash,
-        attempt_number: int,
-    ) -> "Submission":
-        submission = cls(
-            id=id,
-            student_id=student_id,
-            assignment_id=assignment_id,
-            group_assignment_id=group_assignment_id,
-            language=language,
-            code=code,
-            code_hash=code_hash,
-            attempt_number=attempt_number,
-        )
-        submission._add_event(
-            SubmissionCreatedEvent(
-                submission_id=submission.id,
-                student_id=submission.student_id,
-                assignment_id=submission.assignment_id,
-                group_assignment_id=submission.group_assignment_id,
-                code=submission.code,
-                language=submission.language,
-            )
-        )
-        return submission
-
     def __post_init__(self) -> None:
         self._check_invariants()
 
-    def pull_events(self) -> list[DomainEvent]:
-        events = self._events[:]
-        self._events.clear()
-        return events
-
-    def start_processing(self) -> None:
+    def apply_result(
+        self, evaluation_id: UUID, tests_passed: int, tests_total: int
+    ) -> None:
         if self.status != SubmissionStatus.PENDING:
             raise BusinessRuleViolationError(
-                message="Submission status must be PENDING for starting",
-                details={
-                    "entity": "submission",
-                    "id": self.id,
-                    "status": self.status.value,
-                },
-            )
-
-        self.status = SubmissionStatus.IN_PROGRESS
-        self._add_event(
-            event=SubmissionProcessingStartedEvent(
-                submission_id=self.id,
-            )
-        )
-
-    def apply_result(self, tests_passed: int, tests_total: int) -> None:
-        if self.status != SubmissionStatus.IN_PROGRESS:
-            raise BusinessRuleViolationError(
-                message="Submission status must be IN_PROGRESS for applying result",
+                message="Submission status must be PENDING for applying result",
                 details={
                     "entity": "submission",
                     "id": self.id,
@@ -128,22 +64,16 @@ class Submission:
                 },
             )
 
+        self.evaluation_id = evaluation_id
         self.tests_total = tests_total
         self.tests_passed = tests_passed
         self.status = SubmissionStatus.COMPLETED
         self.checked_at = datetime.now(timezone.utc)
-        self._add_event(
-            event=SubmissionCompletedEvent(
-                submission_id=self.id,
-                tests_total=self.tests_total,
-                tests_passed=self.tests_passed,
-            )
-        )
 
     def fail(self) -> None:
-        if self.status not in (SubmissionStatus.PENDING, SubmissionStatus.IN_PROGRESS):
+        if self.status != SubmissionStatus.PENDING:
             raise BusinessRuleViolationError(
-                message="Submission status must be IN_PROGRESS for marking failed",
+                message="Submission status must be PENDING for marking failed",
                 details={
                     "entity": "submission",
                     "id": self.id,
@@ -152,14 +82,6 @@ class Submission:
             )
 
         self.status = SubmissionStatus.FAILED
-        self._add_event(
-            SubmissionFailedEvent(
-                submission_id=self.id,
-            )
-        )
-
-    def _add_event(self, event: DomainEvent) -> None:
-        self._events.append(event)
 
     def _check_invariants(self) -> None:
         if not self.code.strip():

@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from sqlalchemy import insert, select, update, case
+from sqlalchemy import insert, select
 from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,11 +20,9 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
         self.session = session
         self.model = ExecutionCaseORM
 
-    async def add_many(
-        self, execution_cases: list[ExecutionCase]
-    ) -> list[ExecutionCase]:
+    async def add_many(self, execution_cases: list[ExecutionCase]) -> None:
         if not execution_cases:
-            return []
+            return
 
         values = [
             ExecutionCaseMapper.to_dict(domain=execution_case)
@@ -54,8 +52,6 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
                     "execution_cases_count": len(execution_cases),
                 },
             ) from exc
-
-        return execution_cases
 
     async def get(self, id: UUID) -> ExecutionCase | None:
         query = select(self.model).where(self.model.id == id)
@@ -140,81 +136,3 @@ class SQLAlchemyExecutionCaseRepository(ExecutionCaseRepository):
             items=[ExecutionCaseMapper.to_domain(orm=orm) for orm in orms],
             next_cursor=next_cursor,
         )
-
-    async def update_many(
-        self, execution_cases: list[ExecutionCase]
-    ) -> list[ExecutionCase]:
-        if not execution_cases:
-            return []
-
-        ids = [execution_case.id for execution_case in execution_cases]
-        query = (
-            update(self.model)
-            .where(self.model.id.in_(ids))
-            .values(
-                stdout=case(
-                    {
-                        execution_case.id: execution_case.stdout
-                        for execution_case in execution_cases
-                    },
-                    value=self.model.id,
-                ),
-                stderr=case(
-                    {
-                        execution_case.id: execution_case.stderr
-                        for execution_case in execution_cases
-                    },
-                    value=self.model.id,
-                ),
-                execution_time_ms=case(
-                    {
-                        execution_case.id: execution_case.execution_time_ms
-                        for execution_case in execution_cases
-                    },
-                    value=self.model.id,
-                ),
-                exit_code=case(
-                    {
-                        execution_case.id: execution_case.exit_code
-                        for execution_case in execution_cases
-                    },
-                ),
-                is_timeout=case(
-                    {
-                        execution_case.id: execution_case.is_timeout
-                        for execution_case in execution_cases
-                    },
-                ),
-                is_memory_exceeded=case(
-                    {
-                        execution_case.id: execution_case.is_memory_exceeded
-                        for execution_case in execution_cases
-                    },
-                ),
-            )
-        )
-
-        try:
-            await self.session.execute(query)
-
-        except IntegrityError as exc:
-            raise RepositoryIntegrityError(
-                message="Failed to bulk update ExecutionCases",
-                details={
-                    "entity": "execution_case",
-                    "operation": "bulk_update",
-                    "execution_cases_count": len(execution_cases),
-                },
-            ) from exc
-
-        except SQLAlchemyError as exc:
-            raise RepositoryInternalError(
-                message="Failed to bulk update ExecutionCases",
-                details={
-                    "entity": "execution_case",
-                    "operation": "bulk_update",
-                    "execution_cases_count": len(execution_cases),
-                },
-            ) from exc
-
-        return execution_cases
