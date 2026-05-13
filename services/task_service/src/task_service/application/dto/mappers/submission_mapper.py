@@ -9,13 +9,17 @@ from task_service.application.dto.mappers import DomainEnumsMapper
 class SubmissionMapper:
     @staticmethod
     def to_domain(
-        dto: CreateSubmissionDTO, id: UUID, code_hash: CodeHash, attempt_number: int
+        dto: CreateSubmissionDTO,
+        id: UUID,
+        assignment_id: UUID,
+        code_hash: CodeHash,
+        attempt_number: int,
     ) -> Submission:
         language = DomainEnumsMapper.map_language(language=dto.language)
         return Submission(
             id=id,
             student_id=dto.student_id,
-            assignment_id=dto.assignment_id,
+            assignment_id=assignment_id,
             group_assignment_id=dto.group_assignment_id,
             language=language,
             code=dto.code,

@@ -153,4 +153,6 @@ class UseCases:
 
     @property
     def scan_expired_group_assignments(self) -> ScanExpiredGroupAssignmentsUseCase:
-        return ScanExpiredGroupAssignmentsUseCase(uow=self.uow_factory())
+        return ScanExpiredGroupAssignmentsUseCase(
+            uow=self.uow_factory(), create_final_results=self.create_final_results
+        )

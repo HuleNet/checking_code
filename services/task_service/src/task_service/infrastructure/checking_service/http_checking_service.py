@@ -26,5 +26,5 @@ class HTTPCheckingService:
                 timeout=15,
             )
             print("STATUS:", response.status_code)
-            print("BODY:", response.text)            
+            print("BODY:", response.text)
             response.raise_for_status()

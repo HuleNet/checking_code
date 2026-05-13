@@ -17,5 +17,5 @@ broker = AioPikaBroker(
             routing_key="task_queue",
             durable=True,
         )
-    ]
-)    
+    ],
+)

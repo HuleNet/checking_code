@@ -23,7 +23,7 @@ class CreateGroupAssignmentUseCase:
         try:
             async with self.uow as uow:
                 assignment = await uow.assignment_repo.get(id=dto.assignment_id)
-                
+
                 if assignment is None:
                     raise NotFoundError(
                         message="Assignment not found",
@@ -32,7 +32,7 @@ class CreateGroupAssignmentUseCase:
                             "id": dto.assignment_id,
                         },
                     )
-                
+
                 group_assignment = GroupAssignmentMapper.to_domain(dto=dto, id=uuid4())
                 domain_result = await uow.group_assignment_repo.add(
                     group_assignment=group_assignment

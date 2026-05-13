@@ -9,7 +9,9 @@ from task_service.infrastructure.bootstrap import container
 logger = getLogger(__name__)
 
 
-@broker.task(task_name="apply_submission_result_task", labels={"routing_key": "task_queue"})
+@broker.task(
+    task_name="apply_submission_result_task", labels={"routing_key": "task_queue"}
+)
 async def apply_submission_result_task(
     id: str, submission_id: str, tests_total: int, tests_passed: int
 ) -> None:

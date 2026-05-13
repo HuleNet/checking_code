@@ -70,6 +70,7 @@ class CreateSubmissionUseCase:
                 submission = SubmissionMapper.to_domain(
                     dto=dto,
                     id=uuid4(),
+                    assignment_id=group_assignment.assignment_id,
                     code_hash=code_hash,
                     attempt_number=attempt_number,
                 )
@@ -77,13 +78,13 @@ class CreateSubmissionUseCase:
                 group_assignment.ensure_not_expired(now=submission.created_at)
                 domain_result = await uow.submission_repo.add(submission=submission)
                 await uow.commit()
-                
+
             await self.checking_service.create_evaluation(
                 submission_id=submission.id,
                 assignment_id=submission.assignment_id,
                 code=submission.code,
                 language=submission.language.value,
-            ) 
+            )
             return SubmissionMapper.to_dto(domain=domain_result)
 
         except DomainError as exc:

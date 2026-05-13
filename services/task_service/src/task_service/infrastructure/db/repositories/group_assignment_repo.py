@@ -141,7 +141,7 @@ class SQLAlchemyGroupAssignmentRepository(GroupAssignmentRepository):
             next_cursor=next_cursor,
         )
 
-    async def claim_expired(self, now: datetime, limit: int) -> None:
+    async def claim_expired(self, now: datetime, limit: int) -> list[GroupAssignment]:
         subquery = (
             select(self.model.id)
             .where(
@@ -162,7 +162,7 @@ class SQLAlchemyGroupAssignmentRepository(GroupAssignmentRepository):
         )
 
         try:
-            await self.session.execute(query)
+            orm_results = await self.session.execute(query)
 
         except SQLAlchemyError as exc:
             raise RepositoryInternalError(
@@ -173,6 +173,9 @@ class SQLAlchemyGroupAssignmentRepository(GroupAssignmentRepository):
                     "limit": limit,
                 },
             ) from exc
+
+        orms = orm_results.scalars().all()
+        return [GroupAssignmentMapper.to_domain(orm=orm) for orm in orms]
 
     async def reset_finalization(self, id: UUID) -> None:
         query = (
