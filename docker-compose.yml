@@ -59,7 +59,7 @@ services:
     ports:
       - "8002:8000"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock      
+      - /var/run/docker.sock:/var/run/docker.sock
 
   task_worker:
     build:
@@ -97,7 +97,7 @@ services:
       postgres:
         condition: service_healthy  
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock      
+      - /var/run/docker.sock:/var/run/docker.sock
 
   task_scheduler:
     build:
@@ -113,6 +113,26 @@ services:
         condition: service_healthy
       postgres:
         condition: service_healthy           
+
+  judge_python:
+    profiles:
+      - judge
+
+    build:
+      context: .
+      dockerfile: ./docker/images/python/Dockerfile
+
+    image: judge-python:latest
+
+  judge_csharp:
+    profiles:
+      - judge
+
+    build:
+      context: .
+      dockerfile: ./docker/images/csharp/Dockerfile
+
+    image: judge-csharp:latest
 
 volumes:
   postgres_data:

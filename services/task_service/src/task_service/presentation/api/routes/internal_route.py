@@ -16,9 +16,9 @@ async def complete_submission(payload: EvaluationResultRequest) -> None:
         apply_submission_result_task.kicker()
         .with_labels(routing_key="task_queue")
         .kiq(
-            id=str(payload.id),
             submission_id=str(payload.submission_id),
             tests_total=payload.tests_total,
             tests_passed=payload.tests_passed,
+            status=payload.status,
         )
     )

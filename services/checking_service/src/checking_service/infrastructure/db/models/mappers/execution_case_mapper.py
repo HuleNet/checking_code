@@ -17,8 +17,6 @@ class ExecutionCaseMapper:
             stderr=orm.stderr,
             execution_time_ms=orm.execution_time_ms,
             exit_code=orm.exit_code,
-            is_timeout=orm.is_timeout,
-            is_memory_exceeded=orm.is_memory_exceeded,
         )
 
     @staticmethod
@@ -33,6 +31,4 @@ class ExecutionCaseMapper:
             "stderr": domain.stderr,
             "execution_time_ms": domain.execution_time_ms,
             "exit_code": domain.exit_code,
-            "is_timeout": domain.is_timeout,
-            "is_memory_exceeded": domain.is_memory_exceeded,
         }

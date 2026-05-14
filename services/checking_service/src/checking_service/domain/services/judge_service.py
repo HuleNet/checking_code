@@ -18,20 +18,10 @@ class JudgeService:
 
     def evaluate(self, execution_cases: list[ExecutionCase]) -> EvaluationResult:
         tests_passed = 0
-        has_timeout = False
-        has_memory_exceeded = False
         has_error = False
         has_failed = False
 
         for execution_case in execution_cases:
-            if execution_case.is_timeout:
-                has_timeout = True
-                continue
-
-            if execution_case.is_memory_exceeded:
-                has_memory_exceeded = True
-                continue
-
             if execution_case.exit_code != 0 or execution_case.stderr:
                 has_error = True
                 continue
@@ -52,18 +42,6 @@ class JudgeService:
 
             else:
                 has_failed = True
-
-        if has_timeout:
-            return EvaluationResult(
-                status=EvaluationStatus.TIMEOUT,
-                tests_passed=tests_passed,
-            )
-
-        if has_memory_exceeded:
-            return EvaluationResult(
-                status=EvaluationStatus.MEMORY_EXCEEDED,
-                tests_passed=tests_passed,
-            )
 
         if has_error:
             return EvaluationResult(

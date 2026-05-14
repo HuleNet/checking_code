@@ -1,5 +1,6 @@
-from typing import Any
+from typing import Any, cast
 
+from task_service.domain.value_objects import EvaluationStatus
 from task_service.domain.entities import FinalResult
 from task_service.infrastructure.db.models import FinalResultORM
 
@@ -16,8 +17,7 @@ class FinalResultMapper:
             attempt_number=orm.attempt_number,
             tests_total=orm.tests_total,
             tests_passed=orm.tests_passed,
-            plagiarism_score=orm.plagiarism_score,
-            plagiarism_flag=orm.plagiarism_flag,
+            evaluation_status=cast(EvaluationStatus, orm.evaluation_status),
             finalized_at=orm.finalized_at,
         )
 
@@ -32,7 +32,6 @@ class FinalResultMapper:
             "attempt_number": domain.attempt_number,
             "tests_total": domain.tests_total,
             "tests_passed": domain.tests_passed,
-            "plagiarism_score": domain.plagiarism_score,
-            "plagiarism_flag": domain.plagiarism_flag,
+            "evaluation_status": domain.evaluation_status,
             "finalized_at": domain.finalized_at,
         }

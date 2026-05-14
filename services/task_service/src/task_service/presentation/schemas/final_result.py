@@ -13,6 +13,5 @@ class FinalResultResponse(BaseSchema):
     attempt_number: int
     tests_total: int
     tests_passed: int
-    plagiarism_score: float
-    plagiarism_flag: bool
+    evaluation_status: str
     finalized_at: datetime

@@ -13,9 +13,17 @@ class NotFoundError(ApplicationError):
     code = "not_found"
 
 
-class ExecutionError(ApplicationError):
-    code = "execution_error"
-
-
 class InternalError(ApplicationError):
     code = "internal_error"
+
+
+class RunnerError(BaseError):
+    code = "runner_error"
+
+
+class RunnerMemoryError(RunnerError):
+    code = "runner_memory_error"
+
+
+class RunnerExecutionError(RunnerError):
+    code = "runner_execution_error"

@@ -1,6 +1,6 @@
-from typing import Any
+from typing import Any, cast
 
-from task_service.domain.value_objects import CodeHash
+from task_service.domain.value_objects import CodeHash, EvaluationStatus
 from task_service.domain.entities import Submission
 from task_service.infrastructure.db.models import SubmissionORM
 
@@ -20,7 +20,9 @@ class SubmissionMapper:
             status=orm.status,
             tests_passed=orm.tests_passed,
             tests_total=orm.tests_total,
-            evaluation_id=orm.evaluation_id,
+            evaluation_status=cast(EvaluationStatus, orm.evaluation_status)
+            if orm.evaluation_status is not None
+            else None,
             checked_at=orm.checked_at,
             created_at=orm.created_at,
         )
@@ -39,7 +41,7 @@ class SubmissionMapper:
             "status": domain.status,
             "tests_passed": domain.tests_passed,
             "tests_total": domain.tests_total,
-            "evaluation_id": domain.evaluation_id,
+            "evaluation_status": domain.evaluation_status,
             "checked_at": domain.checked_at,
             "created_at": domain.created_at,
         }

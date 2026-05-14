@@ -16,6 +16,7 @@ class HTTPTaskService:
                     "submission_id": str(dto.submission_id),
                     "tests_total": dto.tests_total,
                     "tests_passed": dto.tests_passed,
+                    "status": dto.status,
                 },
                 timeout=15,
             )

@@ -1,0 +1,21 @@
+FROM python:3.13-slim
+
+WORKDIR /runtime
+
+COPY docker/shared /runtime/shared
+COPY docker/images/python /runtime/python
+
+ENV PYTHONPATH=/runtime
+
+RUN apt-get update && \
+    apt-get install -y python3 && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN useradd -m runner
+
+RUN mkdir /workspace && \
+    chown runner:runner /workspace
+
+USER runner
+
+CMD ["sleep", "infinity"]

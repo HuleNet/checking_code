@@ -27,6 +27,4 @@ class ExecutionCaseMapper:
             stderr=domain.stderr,
             execution_time_ms=domain.execution_time_ms,
             exit_code=domain.exit_code,
-            is_timeout=domain.is_timeout,
-            is_memory_exceeded=domain.is_memory_exceeded,
         )

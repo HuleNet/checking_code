@@ -9,7 +9,6 @@ class ScoringService:
         self.penalty_cap = penalty_cap
         self.penalty_step = penalty_cap / (max_attempts - 1) if max_attempts > 1 else 0
 
-    # Можно добавить влияние плагиата на баллы
     def calculate(
         self, tests_passed: int, tests_total: int, attempt_number: int
     ) -> int:

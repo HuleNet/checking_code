@@ -13,8 +13,6 @@ class ExecutionCaseDTO:
     stderr: str | None = None
     execution_time_ms: int | None = None
     exit_code: int | None = None
-    is_timeout: bool | None = None
-    is_memory_exceeded: bool | None = None
 
 
 @dataclass(frozen=True)
@@ -24,5 +22,3 @@ class ExecutionCaseResultDTO:
     stderr: str
     execution_time_ms: int
     exit_code: int
-    is_timeout: bool
-    is_memory_exceeded: bool

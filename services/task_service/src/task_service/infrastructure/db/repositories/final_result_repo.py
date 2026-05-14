@@ -38,8 +38,7 @@ class SQLAlchemyFinalResultRepository(FinalResultRepository):
                 "attempt_number": query.excluded.attempt_number,
                 "tests_total": query.excluded.tests_total,
                 "tests_passed": query.excluded.tests_passed,
-                "plagiarism_score": query.excluded.plagiarism_score,
-                "plagiarism_flag": query.excluded.plagiarism_flag,
+                "evaluation_status": query.excluded.evaluation_status,
                 "finalized_at": query.excluded.finalized_at,
             },
         )

@@ -1,7 +1,7 @@
 from uuid import uuid4, UUID
-from typing import Any
+from typing import Any, cast
 
-from task_service.domain.value_objects import SubmissionStatus
+from task_service.domain.value_objects import SubmissionStatus, EvaluationStatus
 from task_service.domain.errors import DomainError
 from task_service.domain.entities import FinalResult
 from task_service.domain.services import ScoringService
@@ -80,8 +80,7 @@ class CreateFinalResultsUseCase:
                             attempt_number=submission.attempt_number,
                             tests_total=submission.tests_total,
                             tests_passed=submission.tests_passed,
-                            plagiarism_score=1.0,  # заглушка
-                            plagiarism_flag=True,  # заглушка
+                            evaluation_status=cast(EvaluationStatus, submission.evaluation_status),
                         )
                     )
 

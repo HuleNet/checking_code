@@ -16,7 +16,7 @@ class SubmissionDTO:
     status: str
     tests_total: int | None
     tests_passed: int | None
-    evaluation_id: UUID | None
+    evaluation_status: str | None
     checked_at: datetime | None
     created_at: datetime
 
@@ -32,6 +32,6 @@ class CreateSubmissionDTO:
 @dataclass(frozen=True)
 class ApplySubmissionResultDTO:
     id: UUID
-    evaluation_id: UUID
     tests_passed: int
     tests_total: int
+    evaluation_status: str

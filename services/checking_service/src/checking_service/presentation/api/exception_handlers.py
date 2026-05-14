@@ -7,7 +7,6 @@ from checking_service.application.errors import (
     ApplicationError,
     ValidationError,
     NotFoundError,
-    ExecutionError,
     InternalError,
 )
 
@@ -18,9 +17,6 @@ def _resolve_status_code(exc: ApplicationError) -> int:
 
     if isinstance(exc, NotFoundError):
         return 404
-
-    if isinstance(exc, ExecutionError):
-        return 422
 
     if isinstance(exc, InternalError):
         return 500

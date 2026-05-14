@@ -2,7 +2,12 @@ from dataclasses import dataclass, field
 from uuid import UUID
 from datetime import datetime, timezone
 
-from task_service.domain.value_objects import SubmissionStatus, Language, CodeHash
+from task_service.domain.value_objects import (
+    SubmissionStatus,
+    Language,
+    CodeHash,
+    EvaluationStatus,
+)
 from task_service.domain.errors import (
     InvariantViolationError,
     BusinessRuleViolationError,
@@ -22,7 +27,7 @@ class Submission:
     status: SubmissionStatus = SubmissionStatus.PENDING
     tests_total: int | None = None
     tests_passed: int | None = None
-    evaluation_id: UUID | None = None
+    evaluation_status: EvaluationStatus | None = None
     checked_at: datetime | None = None
     created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
@@ -30,7 +35,10 @@ class Submission:
         self._check_invariants()
 
     def apply_result(
-        self, evaluation_id: UUID, tests_passed: int, tests_total: int
+        self,
+        tests_passed: int,
+        tests_total: int,
+        evaluation_status: EvaluationStatus,
     ) -> None:
         if self.status != SubmissionStatus.PENDING:
             raise BusinessRuleViolationError(
@@ -64,10 +72,10 @@ class Submission:
                 },
             )
 
-        self.evaluation_id = evaluation_id
         self.tests_total = tests_total
         self.tests_passed = tests_passed
         self.status = SubmissionStatus.COMPLETED
+        self.evaluation_status = evaluation_status
         self.checked_at = datetime.now(timezone.utc)
 
     def fail(self) -> None:

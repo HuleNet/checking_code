@@ -51,7 +51,7 @@ file_template = "%%(year)d/%%(month).2d/%%(day).2d_%%(hour).2d%%(minute).2d_%%(s
 
 # additional paths to be prepended to sys.path. defaults to the current working directory.
 prepend_sys_path = [
-    "."
+    "./src"
 ]
 
 # timezone to use when rendering the date within the migration file

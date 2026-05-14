@@ -2,6 +2,7 @@ from dataclasses import dataclass, field
 from uuid import UUID
 from datetime import datetime, timezone
 
+from task_service.domain.value_objects import EvaluationStatus
 from task_service.domain.errors import InvariantViolationError
 
 
@@ -15,8 +16,7 @@ class FinalResult:
     attempt_number: int
     tests_total: int
     tests_passed: int
-    plagiarism_score: float
-    plagiarism_flag: bool
+    evaluation_status: EvaluationStatus
     finalized_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
 
     def __post_init__(self) -> None:
@@ -57,14 +57,5 @@ class FinalResult:
                     "entity": "final_result",
                     "tests_total": self.tests_total,
                     "tests_passed": self.tests_passed,
-                },
-            )
-
-        if not (0 <= self.plagiarism_score <= 1):
-            raise InvariantViolationError(
-                message="Plagiarism score must be in 0 to 1 interval",
-                details={
-                    "entity": "final_result",
-                    "plagiarism_score": self.plagiarism_score,
                 },
             )

@@ -13,14 +13,14 @@ logger = getLogger(__name__)
     task_name="apply_submission_result_task", labels={"routing_key": "task_queue"}
 )
 async def apply_submission_result_task(
-    id: str, submission_id: str, tests_total: int, tests_passed: int
+    submission_id: str, tests_total: int, tests_passed: int, status: str
 ) -> None:
     try:
         dto = ApplySubmissionResultDTO(
             id=UUID(submission_id),
-            evaluation_id=UUID(id),
             tests_total=tests_total,
             tests_passed=tests_passed,
+            evaluation_status=status,
         )
         await container.use_cases.apply_submission_result.execute(dto)
 

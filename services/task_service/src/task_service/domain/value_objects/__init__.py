@@ -5,6 +5,7 @@ from task_service.domain.value_objects.group_assignment_status import (
 )
 from task_service.domain.value_objects.language import Language
 from task_service.domain.value_objects.code_hash import CodeHash
+from task_service.domain.value_objects.evaluation_status import EvaluationStatus
 
 
 __all__ = (
@@ -13,4 +14,5 @@ __all__ = (
     "GroupAssignmentStatus",
     "Language",
     "CodeHash",
+    "EvaluationStatus",
 )

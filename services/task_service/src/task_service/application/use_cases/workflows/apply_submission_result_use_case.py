@@ -1,4 +1,6 @@
-from task_service.domain.value_objects import SubmissionStatus
+from typing import cast
+
+from task_service.domain.value_objects import SubmissionStatus, EvaluationStatus
 from task_service.domain.errors import DomainError
 from task_service.application.dto.submission import (
     ApplySubmissionResultDTO,
@@ -40,9 +42,9 @@ class ApplySubmissionResultUseCase:
                     return
 
                 submission.apply_result(
-                    evaluation_id=dto.evaluation_id,
                     tests_passed=dto.tests_passed,
                     tests_total=dto.tests_total,
+                    evaluation_status=cast(EvaluationStatus, dto.evaluation_status),
                 )
                 await uow.submission_repo.update(submission=submission)
                 await uow.commit()

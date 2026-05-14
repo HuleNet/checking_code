@@ -1,7 +1,7 @@
 from uuid import UUID
 from typing import TYPE_CHECKING
 
-from sqlalchemy import String, Integer, Enum, Boolean, ForeignKey
+from sqlalchemy import String, Integer, Enum, ForeignKey
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.dialects.postgresql import UUID as PG_UUID
 
@@ -31,7 +31,5 @@ class ExecutionCaseORM(BaseModel):
     stderr: Mapped[str] = mapped_column(String(500), nullable=False)
     execution_time_ms: Mapped[int] = mapped_column(Integer, nullable=False)
     exit_code: Mapped[int] = mapped_column(Integer, nullable=False)
-    is_timeout: Mapped[bool] = mapped_column(Boolean, nullable=False)
-    is_memory_exceeded: Mapped[bool] = mapped_column(Boolean, nullable=False)
 
     evaluation: Mapped["EvaluationORM"] = relationship(back_populates="execution_cases")

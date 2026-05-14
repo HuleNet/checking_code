@@ -99,6 +99,7 @@ class SQLAlchemySubmissionRepository(SubmissionRepository):
     ) -> int | None:
         duplicate_query = select(self.model.id).where(
             self.model.student_id == student_id,
+            self.model.group_assignment_id == group_assignment_id,
             self.model.code_hash == code_hash,
         )
         attempts_query = select(func.count(self.model.id)).where(
@@ -231,7 +232,7 @@ class SQLAlchemySubmissionRepository(SubmissionRepository):
                 status=submission.status,
                 tests_total=submission.tests_total,
                 tests_passed=submission.tests_passed,
-                evaluation_id=submission.evaluation_id,
+                evaluation_status=submission.evaluation_status,
                 checked_at=submission.checked_at,
             )
             .returning(self.model)

@@ -1,16 +1,6 @@
 from dataclasses import dataclass
-from typing import Literal
 
-
-EvaluationStatus = Literal[
-    "PENDING",
-    "RUNNING",
-    "PASSED",
-    "FAILED",
-    "TIMEOUT",
-    "MEMORY_EXCEEDED",
-    "ERROR",
-]
+from task_service.domain.value_objects import EvaluationStatus
 
 
 @dataclass(frozen=True)
