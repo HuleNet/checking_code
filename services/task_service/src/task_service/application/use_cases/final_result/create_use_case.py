@@ -80,7 +80,9 @@ class CreateFinalResultsUseCase:
                             attempt_number=submission.attempt_number,
                             tests_total=submission.tests_total,
                             tests_passed=submission.tests_passed,
-                            evaluation_status=cast(EvaluationStatus, submission.evaluation_status),
+                            evaluation_status=cast(
+                                EvaluationStatus, submission.evaluation_status
+                            ),
                         )
                     )
 

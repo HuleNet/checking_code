@@ -10,6 +10,10 @@ class FinalResultRepository(Protocol):
 
     async def get(self, id: UUID) -> FinalResult | None: ...
 
+    async def get_by_student_and_group_assignment(
+        self, student_id: UUID, group_assignment_id: UUID
+    ) -> FinalResult | None: ...
+
     async def get_by_group_assignment(
         self, group_assignment_id: UUID
     ) -> list[FinalResult]: ...

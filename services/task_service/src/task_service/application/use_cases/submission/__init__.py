@@ -13,6 +13,9 @@ from task_service.application.use_cases.submission.get_by_group_assignment_use_c
 from task_service.application.use_cases.submission.get_page_use_case import (
     GetSubmissionPageUseCase,
 )
+from task_service.application.use_cases.submission.get_page_to_student_use_case import (
+    GetSubmissionPageToStudentUseCase,
+)
 from task_service.application.use_cases.submission.delete_use_case import (
     DeleteSubmissionUseCase,
 )
@@ -24,5 +27,6 @@ __all__ = (
     "GetSubmissionUseCase",
     "GetSubmissionsByGroupAssignmentUseCase",
     "GetSubmissionPageUseCase",
+    "GetSubmissionPageToStudentUseCase",
     "DeleteSubmissionUseCase",
 )

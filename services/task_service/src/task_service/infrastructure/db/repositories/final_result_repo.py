@@ -156,6 +156,35 @@ class SQLAlchemyFinalResultRepository(FinalResultRepository):
             next_cursor=next_cursor,
         )
 
+    async def get_by_student_and_group_assignment(
+        self, student_id: UUID, group_assignment_id: UUID
+    ) -> FinalResult | None:
+        query = select(self.model).where(
+            self.model.student_id == student_id,
+            self.model.group_assignment_id == group_assignment_id,
+        )
+
+        try:
+            orm_result = await self.session.execute(query)
+
+        except SQLAlchemyError as exc:
+            raise RepositoryInternalError(
+                message="Failed to fetch FinalResult by student and GroupAssignment",
+                details={
+                    "entity": "final_result",
+                    "operation": "get_by_student_and_group_assignment",
+                    "student_id": student_id,
+                    "group_assignment_id": group_assignment_id,
+                },
+            ) from exc
+
+        orm = orm_result.scalar_one_or_none()
+
+        if orm is None:
+            return None
+
+        return FinalResultMapper.to_domain(orm=orm)
+
     async def delete(self, id: UUID) -> FinalResult | None:
         query = delete(self.model).where(self.model.id == id).returning(self.model)
 

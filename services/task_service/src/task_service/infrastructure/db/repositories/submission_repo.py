@@ -224,6 +224,51 @@ class SQLAlchemySubmissionRepository(SubmissionRepository):
             next_cursor=next_cursor,
         )
 
+    async def get_page_to_student(
+        self, student_id: UUID, group_assignment_id: UUID, pagination: CursorPagination
+    ) -> Page[Submission]:
+        query = select(self.model).where(
+            self.model.student_id == student_id,
+            self.model.group_assignment_id == group_assignment_id,
+        )
+
+        if pagination.cursor:
+            query = query.where(self.model.id > pagination.cursor["id"])
+
+        query = query.order_by(self.model.id).limit(pagination.limit + 1)
+
+        try:
+            orm_results = await self.session.execute(query)
+
+        except SQLAlchemyError as exc:
+            raise RepositoryInternalError(
+                message="Failed to fetch Submission page to student",
+                details={
+                    "entity": "submission",
+                    "operation": "get_page_to_student",
+                    "student_id": student_id,
+                    "group_assignment_id": group_assignment_id,
+                    "limit": pagination.limit,
+                    "cursor": pagination.cursor,
+                },
+            ) from exc
+
+        orms = orm_results.scalars().all()
+        has_next = len(orms) > pagination.limit
+
+        if has_next:
+            next_item = orms[pagination.limit]
+            next_cursor = {"id": next_item.id}
+        else:
+            next_cursor = None
+
+        return Page(
+            items=[
+                SubmissionMapper.to_domain(orm=orm) for orm in orms[: pagination.limit]
+            ],
+            next_cursor=next_cursor,
+        )
+
     async def update(self, submission: Submission) -> Submission:
         query = (
             update(self.model)

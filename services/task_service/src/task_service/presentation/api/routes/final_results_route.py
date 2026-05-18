@@ -45,6 +45,22 @@ async def get_final_result_page(
     )
 
 
+@final_result_router.get(
+    "student/{student_id}/group-assignment/{group_assignment_id}/",
+    response_model=FinalResultResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def get_final_result_to_student(
+    student_id: UUID,
+    group_assignment_id: UUID,
+) -> FinalResultResponse:
+    result = await container.use_cases.get_final_result_by_student_and_group_assignment.execute(
+        student_id=student_id,
+        group_assignment_id=group_assignment_id,
+    )
+    return FinalResultResponse.model_validate(result)
+
+
 @final_result_router.delete(
     "/{id}",
     response_model=FinalResultResponse,

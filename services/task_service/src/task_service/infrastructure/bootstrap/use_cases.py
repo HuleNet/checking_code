@@ -21,11 +21,13 @@ from task_service.application.use_cases.submission import (
     GetSubmissionsByGroupAssignmentUseCase,
     GetSubmissionPageUseCase,
     DeleteSubmissionUseCase,
+    GetSubmissionPageToStudentUseCase,
     FailSubmissionUseCase,
 )
 from task_service.application.use_cases.final_result import (
     CreateFinalResultsUseCase,
     GetFinalResultUseCase,
+    GetFinalResultByStudentAndGroupAssignmentUseCase,
     GetFinalResultsByGroupAssignmentUseCase,
     GetFinalResultPageUseCase,
     DeleteFinalResultUseCase,
@@ -114,6 +116,10 @@ class UseCases:
         return GetSubmissionPageUseCase(uow=self.uow_factory())
 
     @property
+    def get_submission_page_to_student(self) -> GetSubmissionPageToStudentUseCase:
+        return GetSubmissionPageToStudentUseCase(uow=self.uow_factory())
+
+    @property
     def delete_submission(self) -> DeleteSubmissionUseCase:
         return DeleteSubmissionUseCase(uow=self.uow_factory())
 
@@ -144,6 +150,12 @@ class UseCases:
     @property
     def delete_final_result(self) -> DeleteFinalResultUseCase:
         return DeleteFinalResultUseCase(uow=self.uow_factory())
+
+    @property
+    def get_final_result_by_student_and_group_assignment(
+        self,
+    ) -> GetFinalResultByStudentAndGroupAssignmentUseCase:
+        return GetFinalResultByStudentAndGroupAssignmentUseCase(uow=self.uow_factory())
 
     @property
     def apply_submission_result(self) -> ApplySubmissionResultUseCase:

@@ -60,6 +60,32 @@ async def get_submission_page(
     )
 
 
+@submission_router.get(
+    "student/{student_id}/group-assignment/{group_assignment_id}",
+    response_model=PageResponse[SubmissionResponse],
+    status_code=status.HTTP_200_OK,
+)
+async def get_submission_page_to_student(
+    student_id: UUID,
+    group_assignment_id: UUID,
+    limit: int = Query(default=20, ge=1, le=100),
+    cursor: UUID | None = Query(default=None),
+) -> PageResponse[SubmissionResponse]:
+    pagination = CursorPagination(
+        limit=limit,
+        cursor={"id": cursor} if cursor else None,
+    )
+    results = await container.use_cases.get_submission_page_to_student.execute(
+        student_id=student_id,
+        group_assignment_id=group_assignment_id,
+        pagination=pagination,
+    )
+    return PageResponse(
+        items=[SubmissionResponse.model_validate(result) for result in results.items],
+        next_cursor=results.next_cursor,
+    )
+
+
 @submission_router.delete(
     "/{id}",
     response_model=SubmissionResponse,
