@@ -61,7 +61,7 @@ async def get_submission_page(
 
 
 @submission_router.get(
-    "student/{student_id}/group-assignment/{group_assignment_id}",
+    "student/{student_id}/group-assignment/{group_assignment_id}/page",
     response_model=PageResponse[SubmissionResponse],
     status_code=status.HTTP_200_OK,
 )
