@@ -22,7 +22,7 @@ async def get_final_result(id: UUID) -> FinalResultResponse:
 
 
 @final_result_router.get(
-    "group_assignment/{group_assignment}/page",
+    "group-assignment/{group_assignment}/page",
     response_model=PageResponse[FinalResultResponse],
     status_code=status.HTTP_200_OK,
 )
