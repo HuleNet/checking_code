@@ -20,3 +20,11 @@ class CreateGroupAssignmentDTO:
     assignment_id: UUID
     allowed_languages: set[str]
     deadline: datetime
+
+
+@dataclass(frozen=True)
+class UpdateGroupAssignmentDTO:
+    group_id: UUID | None
+    assignment_id: UUID | None
+    allowed_languages: set[str] | None
+    deadline: datetime | None

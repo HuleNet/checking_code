@@ -13,6 +13,7 @@ from task_service.application.use_cases.group_assignment import (
     GetGroupAssignmentUseCase,
     GetGroupAssignmentsByGroupUseCase,
     GetGroupAssignmentPageUseCase,
+    UpdateGroupAssignmentUseCase,
     DeleteGroupAssignmentUseCase,
 )
 from task_service.application.use_cases.submission import (
@@ -88,6 +89,10 @@ class UseCases:
     @property
     def get_group_assignment_page(self) -> GetGroupAssignmentPageUseCase:
         return GetGroupAssignmentPageUseCase(uow=self.uow_factory())
+
+    @property
+    def update_group_assignment(self) -> UpdateGroupAssignmentUseCase:
+        return UpdateGroupAssignmentUseCase(uow=self.uow_factory())
 
     @property
     def delete_group_assignment(self) -> DeleteGroupAssignmentUseCase:

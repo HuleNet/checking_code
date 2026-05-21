@@ -29,13 +29,7 @@ class CreateFinalResultsUseCase:
                 )
 
                 if not submissions:
-                    raise NotFoundError(
-                        message="Submissions not found",
-                        details={
-                            "entity": "submission",
-                            "group_assignment_id": group_assignment_id,
-                        },
-                    )
+                    return []
 
                 final_results = []
                 best_by_student: dict[UUID, Any] = {}

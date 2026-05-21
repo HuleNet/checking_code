@@ -199,6 +199,64 @@ class SQLAlchemyGroupAssignmentRepository(GroupAssignmentRepository):
                 },
             ) from exc
 
+    async def update(self, group_assignment: GroupAssignment) -> GroupAssignment: 
+        query = (
+            update(self.model)
+            .where(self.model.id == group_assignment.id)
+            .values(
+                group_id=group_assignment.group_id,
+                assignment_id=group_assignment.assignment_id,
+                allowed_languages=list(group_assignment.allowed_languages),
+                deadline=group_assignment.deadline,
+            )
+            .returning(self.model)
+        )
+
+        try:
+            orm_result = await self.session.execute(query)
+
+        except IntegrityError as exc:
+            raise RepositoryIntegrityError(
+                message="Failed to update GroupAssignment",
+                details={
+                    "entity": "group_assignment",
+                    "operation": "update",
+                    "id": group_assignment.id,
+                    "group_id": group_assignment.group_id,
+                    "assignment_id": group_assignment.assignment_id,
+                    "allowed_languages": group_assignment.allowed_languages,
+                    "deadline": group_assignment.deadline,                
+                },
+            ) from exc
+
+        except SQLAlchemyError as exc:
+            raise RepositoryInternalError(
+                message="Failed to update GroupAssignment",
+                details={
+                    "entity": "group_assignment",
+                    "operation": "update",
+                    "id": group_assignment.id,
+                    "group_id": group_assignment.group_id,
+                    "assignment_id": group_assignment.assignment_id,
+                    "allowed_languages": group_assignment.allowed_languages,
+                    "deadline": group_assignment.deadline,                
+                },
+            ) from exc
+
+        orm = orm_result.scalar_one_or_none()
+
+        if orm is None:
+            raise RepositoryIntegrityError(
+                message="GroupAssignment not found",
+                details={
+                    "entity": "group_assignment",
+                    "operation": "update",
+                    "id": group_assignment.id,
+                },
+            ) 
+        
+        return GroupAssignmentMapper.to_domain(orm=orm)       
+
     async def delete(self, id: UUID) -> GroupAssignment | None:
         query = delete(self.model).where(self.model.id == id).returning(self.model)
 

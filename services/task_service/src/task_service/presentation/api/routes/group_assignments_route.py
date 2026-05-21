@@ -8,6 +8,7 @@ from task_service.presentation.schemas.pagination import PageResponse
 from task_service.presentation.schemas.group_assignment import (
     GroupAssignmentResponse,
     CreateGroupAssignmentRequest,
+    UpdateGroupAssignmentRequest,
 )
 
 
@@ -65,6 +66,18 @@ async def get_group_assignment_page(
         next_cursor=results.next_cursor,
     )
 
+@group_assignment_router.patch(
+    "/{id}",
+    response_model=GroupAssignmentResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def update_group_assignment(
+    id: UUID, payload: UpdateGroupAssignmentRequest
+) -> GroupAssignmentResponse:
+    result = await container.use_cases.update_group_assignment.execute(
+        id=id, dto=payload.to_dto()
+    )
+    return GroupAssignmentResponse.model_validate(result)
 
 @group_assignment_router.delete(
     "/{id}",

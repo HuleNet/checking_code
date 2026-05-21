@@ -70,7 +70,7 @@ services:
       task_service.presentation.tasks.worker:broker
       task_service.presentation.tasks.worker    
       --log-level INFO
-      --workers 1
+      --workers 3
     env_file:
       - ./services/task_service/.env
     depends_on:

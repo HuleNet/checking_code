@@ -1,7 +1,7 @@
 from uuid import UUID
 from datetime import datetime
 
-from task_service.application.dto.group_assignment import CreateGroupAssignmentDTO
+from task_service.application.dto.group_assignment import CreateGroupAssignmentDTO, UpdateGroupAssignmentDTO
 from task_service.presentation.schemas.base_schema import BaseSchema
 
 
@@ -28,3 +28,17 @@ class CreateGroupAssignmentRequest(BaseSchema):
             allowed_languages=self.allowed_languages,
             deadline=self.deadline,
         )
+
+class UpdateGroupAssignmentRequest(BaseSchema):
+    group_id: UUID | None
+    assignment_id: UUID | None
+    allowed_languages: set[str] | None
+    deadline: datetime | None 
+    
+    def to_dto(self) -> UpdateGroupAssignmentDTO:
+        return UpdateGroupAssignmentDTO(
+            group_id=self.group_id,
+            assignment_id=self.assignment_id,
+            allowed_languages=self.allowed_languages,
+            deadline=self.deadline,
+        )           
