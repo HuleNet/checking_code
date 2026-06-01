@@ -6,7 +6,7 @@ docker compose --profile judge down - закрыть
 
 docker compose --profile judge down -v - закрыть и удалить volumes
 
-Если это первый запуск или до этого была выполнена команда docker compose --profile judge down -v - закрыть и удалить volumes:
+Если это первый запуск или до этого была выполнена команда docker compose --profile judge down -v:
 
 docker compose exec task_service uv run alembic upgrade head
 
